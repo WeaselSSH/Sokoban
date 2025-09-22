@@ -10,7 +10,7 @@ public class LeerArchivo {
         leerDatos();
         leerProgreso();
         leerConfig();
-        leerPartidas(); // NUEVO: cargar historial de partidas
+        leerPartidas();
     }
 
     private static void leerDatos() throws IOException {
@@ -82,10 +82,14 @@ public class LeerArchivo {
             u.setTiempoPorNivel(i, f.readInt());
         }
 
-        // nuevo bloque
         f.seek(130);
         for (int i = 1; i <= 7; i++) {
             u.setMejorTiempoPorNivel(i, f.readInt());
+        }
+
+        f.seek(158);
+        for (int i = 1; i <= 7; i++) {
+            u.setEmpujesNivel(i, f.readInt());
         }
     }
 
@@ -112,7 +116,6 @@ public class LeerArchivo {
         u.setConfiguracion("Idioma", idioma);
     }
 
-    // === NUEVO: leer historial de partidas desde Partidas.bin ===
     private static void leerPartidas() throws IOException {
         RandomAccessFile f = ManejoArchivos.archivoPartidas;
         if (f == null) return;
@@ -131,7 +134,7 @@ public class LeerArchivo {
             int intentos  = f.readInt();
             String logros = safeReadUTF(f);
             int tiempo    = f.readInt();
-            int nivel     = f.readInt(); // NUEVO
+            int nivel     = f.readInt();
 
             Partida p = new Partida(fecha, intentos, logros, tiempo, nivel);
             u.historial.add(p);

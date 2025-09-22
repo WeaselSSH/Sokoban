@@ -62,12 +62,19 @@ public class ArchivoGuardar {
         }
     }
 
-    // nuevo bloque: mejorTiempoPorNivel
     public static void guardarMejorTiempoPorNivel() throws IOException{
         RandomAccessFile f = ManejoArchivos.archivoProgreso;
         f.seek(130);
         for (int i = 1; i < 8; i++) {
             f.writeInt(ManejoUsuarios.UsuarioActivo.getMejorTiempoPorNivel(i));
+        }
+    }
+
+    public static void guardarEmpujesMejorIntento() throws IOException{
+        RandomAccessFile f = ManejoArchivos.archivoProgreso;
+        f.seek(158);
+        for (int i = 1; i < 8; i++) {
+            f.writeInt(ManejoUsuarios.UsuarioActivo.getEmpujesNivel(i));
         }
     }
 
@@ -158,13 +165,13 @@ public class ArchivoGuardar {
             int intentos    = p.getIntentos();
             String logros   = (p.getLogros() == null) ? "" : p.getLogros();
             int tiempo      = p.getTiempo();
-            int nivel       = p.getNivel(); // NUEVO
+            int nivel       = p.getNivel();
 
             f.writeUTF(fecha);
             f.writeInt(intentos);
             f.writeUTF(logros);
             f.writeInt(tiempo);
-            f.writeInt(nivel); // NUEVO
+            f.writeInt(nivel);
         }
     }
 
@@ -227,7 +234,8 @@ public class ArchivoGuardar {
         guardarTotalPartidas();
         guardarPartidasPorNivel();
         guardarTiempoPorNivel();
-        guardarMejorTiempoPorNivel(); // nuevo
+        guardarMejorTiempoPorNivel();
+        guardarEmpujesMejorIntento();
 
         guardarConfiguracion();
 

@@ -64,7 +64,6 @@ public class ManejoArchivos {
 
         long ahora = Calendar.getInstance().getTimeInMillis();
 
-        // ===== Datos.bin =====
         RandomAccessFile archivoDatos = new RandomAccessFile(new File(dir, "Datos.bin"), "rw");
         archivoDatos.seek(0);
         archivoDatos.writeLong(ahora);
@@ -80,21 +79,20 @@ public class ManejoArchivos {
         archivoDatos.getFD().sync();
         archivoDatos.close();
 
-        // ===== Progreso.bin =====
         RandomAccessFile archivoProgreso = new RandomAccessFile(new File(dir, "Progreso.bin"), "rw");
-        archivoProgreso.seek(0); archivoProgreso.writeBoolean(false); // tuto
-        archivoProgreso.seek(1); for (int i = 0; i < 7; i++) archivoProgreso.writeBoolean(false); // niveles
-        archivoProgreso.seek(8); for (int i = 0; i < 7; i++) archivoProgreso.writeInt(0); // mayorPuntuacion
-        archivoProgreso.seek(36); archivoProgreso.writeInt(0); // tiempoTotal
-        archivoProgreso.seek(40); archivoProgreso.writeInt(0); // puntuacionGeneral
-        archivoProgreso.seek(44); archivoProgreso.writeInt(0); // partidasTotales
-        archivoProgreso.seek(48); for (int i = 0; i < 7; i++) archivoProgreso.writeInt(0); // partidasPorNivel
-        archivoProgreso.seek(102); for (int i = 0; i < 7; i++) archivoProgreso.writeInt(0); // tiempoPorNivel
-        archivoProgreso.seek(130); for (int i = 0; i < 7; i++) archivoProgreso.writeInt(0); // mejorTiempoPorNivel (nuevo)
+        archivoProgreso.seek(0); archivoProgreso.writeBoolean(false);
+        archivoProgreso.seek(1); for (int i = 0; i < 7; i++) archivoProgreso.writeBoolean(false);
+        archivoProgreso.seek(8); for (int i = 0; i < 7; i++) archivoProgreso.writeInt(0);
+        archivoProgreso.seek(36); archivoProgreso.writeInt(0);
+        archivoProgreso.seek(40); archivoProgreso.writeInt(0);
+        archivoProgreso.seek(44); archivoProgreso.writeInt(0);
+        archivoProgreso.seek(48); for (int i = 0; i < 7; i++) archivoProgreso.writeInt(0);
+        archivoProgreso.seek(102); for (int i = 0; i < 7; i++) archivoProgreso.writeInt(0);
+        archivoProgreso.seek(130); for (int i = 0; i < 7; i++) archivoProgreso.writeInt(0);
+        archivoProgreso.seek(158); for (int i = 0; i < 7; i++) archivoProgreso.writeInt(0);
         archivoProgreso.getFD().sync();
         archivoProgreso.close();
 
-        // ===== Config.bin =====
         RandomAccessFile archivoConfig = new RandomAccessFile(new File(dir, "Config.bin"), "rw");
         archivoConfig.seek(0);  archivoConfig.writeInt(80);
         archivoConfig.seek(4);  archivoConfig.writeInt(19);
@@ -106,7 +104,6 @@ public class ManejoArchivos {
         archivoConfig.getFD().sync();
         archivoConfig.close();
 
-        // ===== Partidas.bin =====
         RandomAccessFile archivoPartidas = new RandomAccessFile(new File(dir, "Partidas.bin"), "rw");
         archivoPartidas.setLength(0);
         archivoPartidas.getFD().sync();
@@ -119,7 +116,6 @@ public class ManejoArchivos {
 
         carpetaUsuarioActual = dir;
 
-        // abrir handlers globales
         ManejoArchivos.archivoDatos    = new RandomAccessFile(new File(dir, "Datos.bin"), "rw");
         ManejoArchivos.archivoProgreso = new RandomAccessFile(new File(dir, "Progreso.bin"), "rw");
         ManejoArchivos.archivoPartidas = new RandomAccessFile(new File(dir, "Partidas.bin"), "rw");

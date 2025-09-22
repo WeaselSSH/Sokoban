@@ -37,6 +37,7 @@ import com.elkinedwin.LogicaUsuario.AudioX;
 import com.elkinedwin.LogicaUsuario.ManejoUsuarios;
 import com.elkinedwin.LogicaUsuario.Partida;
 import com.elkinedwin.LogicaUsuario.Usuario;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -108,8 +109,7 @@ public abstract class BasePlayScreen implements Screen {
     private int restartCount = 0;
     private boolean historyRecorded = false;
 
-    private VictoryPhase victoryPhase = VictoryPhase.NONE;
-    private float victoryTimer = 0f;
+    // Variables de victoria quedan, pero SIN usar delay
     private Music victoryMusic = null;
     private int victoryMoves, victoryPushes, victorySeconds;
 
@@ -238,12 +238,10 @@ public abstract class BasePlayScreen implements Screen {
     }
 
     @Override
-    public void pause() {
-    }
+    public void pause() { }
 
     @Override
-    public void resume() {
-    }
+    public void resume() { }
 
     @Override
     public void hide() {
@@ -259,14 +257,9 @@ public abstract class BasePlayScreen implements Screen {
     @Override
     public void dispose() {
         try {
-            if (movementThreadLogic != null) {
-                movementThreadLogic.stop();
-            }
-            if (movementThread != null) {
-                movementThread.interrupt();
-            }
-        } catch (Exception ignored) {
-        }
+            if (movementThreadLogic != null) movementThreadLogic.stop();
+            if (movementThread != null) movementThread.interrupt();
+        } catch (Exception ignored) { }
         if (victoryMusic != null) {
             victoryMusic.stop();
             AudioBus.unregisterMusic(victoryMusic);
@@ -280,11 +273,8 @@ public abstract class BasePlayScreen implements Screen {
     }
 
     protected abstract void onShowExtra();
-
     protected abstract void onDrawMap();
-
     protected abstract void onDrawHUD();
-
     protected abstract void onDisposeExtra();
 
     protected void onUpdate(float delta) {
@@ -293,46 +283,23 @@ public abstract class BasePlayScreen implements Screen {
             if (paused) {
                 directionQueue.clear();
                 pauseRoot.setVisible(true);
-                if (bgMusic != null) {
-                    bgMusic.pause();
-                }
+                if (bgMusic != null) bgMusic.pause();
                 Gdx.input.setInputProcessor(pauseStage);
             } else {
                 pauseRoot.setVisible(false);
-                if (bgMusic != null) {
-                    bgMusic.play();
-                }
+                if (bgMusic != null) bgMusic.play();
                 Gdx.input.setInputProcessor(null);
             }
         }
 
-        if (paused) {
-            return;
-        }
+        if (paused) return;
 
-        if (victoryPhase == VictoryPhase.FREEZE) {
-            victoryTimer += delta;
-            if (victoryTimer >= 2.0f) {
-                victoryPhase = VictoryPhase.PLAYING;
-                victoryTimer = 0f;
-                if (victoryMusic != null) {
-                    victoryMusic.play();
-                }
-            }
-            return;
-        }
-        if (victoryPhase == VictoryPhase.PLAYING) {
-            return;
-        }
+        // Quitado el manejo de FREEZE/PLAYING: sin delay
 
         timeChronometer += delta;
-        if (isGameplayLevel()) {
-            levelSessionTime += delta;
-        }
+        if (isGameplayLevel()) levelSessionTime += delta;
 
-        if (!tweenActive) {
-            handleHeldInput(delta);
-        }
+        if (!tweenActive) handleHeldInput(delta);
         detectAndAnimateMovement();
 
         if (moveRequested && !tweenActive && directionQueue.isEmpty()) {
@@ -344,20 +311,15 @@ public abstract class BasePlayScreen implements Screen {
     }
 
     private void handleHeldInput(float delta) {
-        if (tweenActive || moveRequested) {
-            return;
-        }
+        if (tweenActive || moveRequested) return;
 
         Directions currentHeld = readHeldDirection();
         if (currentHeld == null) {
-            heldDirection = null;
-            holdTimer = 0f;
-            return;
+            heldDirection = null; holdTimer = 0f; return;
         }
 
         if (heldDirection == null || currentHeld != heldDirection) {
-            heldDirection = currentHeld;
-            holdTimer = 0f;
+            heldDirection = currentHeld; holdTimer = 0f;
             enqueueDirection(heldDirection);
             facing = heldDirection;
             return;
@@ -375,12 +337,8 @@ public abstract class BasePlayScreen implements Screen {
     }
 
     private void enqueueDirection(Directions dir) {
-        if (tweenActive || moveRequested) {
-            return;
-        }
-        if (directionQueue.offer(dir)) {
-            moveRequested = true;
-        }
+        if (tweenActive || moveRequested) return;
+        if (directionQueue.offer(dir)) moveRequested = true;
     }
 
     private void detectAndAnimateMovement() {
@@ -415,16 +373,13 @@ public abstract class BasePlayScreen implements Screen {
 
             game.recomputeVictory();
             if (game.isVictory()) {
-                if (bgMusic != null) {
-                    bgMusic.stop();
-                }
+                if (bgMusic != null) bgMusic.stop();
 
                 victorySeconds = (int) timeChronometer;
-                victoryMoves = p.getMoveCount();
-                victoryPushes = p.getPushCount();
+                victoryMoves   = p.getMoveCount();
+                victoryPushes  = p.getPushCount();
 
-                boolean newBestSteps = false;
-                boolean newBestTime = false;
+                boolean newBestAttempt = false;
 
                 try {
                     if (level == 0) {
@@ -436,35 +391,20 @@ public abstract class BasePlayScreen implements Screen {
                         if (u != null) {
                             int bestSteps = u.getMayorPuntuacion(level);
                             if (bestSteps == 0 || victoryMoves < bestSteps) {
-                                newBestSteps = true;
-                            }
-
-                            int bestTime = u.getMejorTiempoPorNivel(level);
-                            if (bestTime == 0 || victorySeconds < bestTime) {
-                                newBestTime = true;
-                            }
-
-                            u.setNivelCompletado(level, true);
-                            if (newBestSteps) {
+                                newBestAttempt = true;
                                 u.setMayorPuntuacion(level, victoryMoves);
+                                u.setEmpujesNivel(level, victoryPushes);
+                                u.setTiempoMejorIntento(level, victorySeconds);
                             }
-                            if (newBestTime) {
-                                u.setMejorTiempoPorNivel(level, victorySeconds);
-                            }
+                            u.setNivelCompletado(level, true);
                         }
                     }
-                } catch (Exception ignored) {
-                }
+                } catch (Exception ignored) { }
 
                 if (isGameplayLevel() && !historyRecorded) {
                     int elapsedSecReal = (int) timeChronometer;
                     StringBuilder lg = new StringBuilder(Lang.logCompletedLevel());
-                    if (newBestSteps) {
-                        lg.append("\n").append(Lang.logNewBestSteps());
-                    }
-                    if (newBestTime) {
-                        lg.append("\n").append(Lang.logNewBestTime());
-                    }
+                    if (newBestAttempt) lg.append("\n¡Nuevo mejor intento!");
                     savePartida(startDateStr, restartCount, lg.toString(), elapsedSecReal, level);
                     historyRecorded = true;
                 }
@@ -476,29 +416,12 @@ public abstract class BasePlayScreen implements Screen {
                 moveRequested = false;
                 tweenActive = false;
 
-                String path = (level == 7)
-                        ? "audios/level_completed_epic.mp3"
-                        : "audios/level_completed.mp3";
-                victoryMusic = AudioX.newMusic(path);
-                victoryMusic.setLooping(false);
-                victoryMusic.setOnCompletionListener(m -> {
-                    if (victoryMusic != null) {
-                        victoryMusic.stop();
-                        AudioBus.unregisterMusic(victoryMusic);
-                        victoryMusic.dispose();
-                        victoryMusic = null;
-                    }
-                    app.setScreen(new VictoryScreen(app, level, victoryMoves, victoryPushes, victorySeconds, 7, font));
-                });
-
-                victoryPhase = VictoryPhase.FREEZE;
-                victoryTimer = 0f;
-
+                // Cambio inmediato de pantalla SIN delay
+                app.setScreen(new VictoryScreen(app, level, victoryMoves, victoryPushes, victorySeconds, 7, font));
                 return;
             }
 
-            prevX = cx;
-            prevY = cy;
+            prevX = cx; prevY = cy;
             prevPushes = p.getPushCount();
             moveRequested = false;
         }
@@ -510,9 +433,7 @@ public abstract class BasePlayScreen implements Screen {
             levelSessionTimeSubmitted = true;
             return;
         }
-        if (levelSessionTimeSubmitted) {
-            return;
-        }
+        if (levelSessionTimeSubmitted) return;
 
         try {
             Usuario u = ManejoUsuarios.UsuarioActivo;
@@ -526,8 +447,7 @@ public abstract class BasePlayScreen implements Screen {
                 u.setPartidasTotales(u.getPartidasTotales() + 1);
                 u.recalcularTiempoPromedioNivel(level);
             }
-        } catch (Exception ignored) {
-        }
+        } catch (Exception ignored) { }
 
         levelSessionTime = 0f;
         levelSessionTimeSubmitted = true;
@@ -547,17 +467,17 @@ public abstract class BasePlayScreen implements Screen {
         wallTexture = load("textures/wall.png");
 
         Texture downWalk1 = load("textures/player_down_walk1.png");
-        Texture downIdle = load("textures/player_down_idle.png");
+        Texture downIdle  = load("textures/player_down_idle.png");
         Texture downWalk2 = load("textures/player_down_walk2.png");
-        Texture upWalk1 = load("textures/player_up_walk1.png");
-        Texture upIdle = load("textures/player_up_idle.png");
-        Texture upWalk2 = load("textures/player_up_walk2.png");
+        Texture upWalk1   = load("textures/player_up_walk1.png");
+        Texture upIdle    = load("textures/player_up_idle.png");
+        Texture upWalk2   = load("textures/player_up_walk2.png");
         Texture leftWalk1 = load("textures/player_left_walk1.png");
-        Texture leftIdle = load("textures/player_left_idle.png");
+        Texture leftIdle  = load("textures/player_left_idle.png");
         Texture leftWalk2 = load("textures/player_left_walk2.png");
-        Texture rightWalk1 = load("textures/player_right_walk1.png");
+        Texture rightWalk1= load("textures/player_right_walk1.png");
         Texture rightIdle = load("textures/player_right_idle.png");
-        Texture rightWalk2 = load("textures/player_right_walk2.png");
+        Texture rightWalk2= load("textures/player_right_walk2.png");
 
         kUp = getCfgKey("Arriba", Input.Keys.UP);
         kDown = getCfgKey("Abajo", Input.Keys.DOWN);
@@ -574,9 +494,9 @@ public abstract class BasePlayScreen implements Screen {
         sPause = Input.Keys.toString(kPause);
 
         downFrames = new Texture[]{downWalk1, downIdle, downWalk2};
-        upFrames = new Texture[]{upWalk1, upIdle, upWalk2};
+        upFrames   = new Texture[]{upWalk1, upIdle, upWalk2};
         leftFrames = new Texture[]{leftWalk1, leftIdle, leftWalk2};
-        rightFrames = new Texture[]{rightWalk1, rightIdle, rightWalk2};
+        rightFrames= new Texture[]{rightWalk1, rightIdle, rightWalk2};
 
         stepSound = AudioX.newSound("audios/step.wav");
         resetLevelSound = AudioX.newSound("audios/reset_level.wav");
@@ -596,18 +516,10 @@ public abstract class BasePlayScreen implements Screen {
         wallTexture.dispose();
         btnTexture.dispose();
 
-        for (Texture t : downFrames) {
-            t.dispose();
-        }
-        for (Texture t : upFrames) {
-            t.dispose();
-        }
-        for (Texture t : leftFrames) {
-            t.dispose();
-        }
-        for (Texture t : rightFrames) {
-            t.dispose();
-        }
+        for (Texture t : downFrames) t.dispose();
+        for (Texture t : upFrames) t.dispose();
+        for (Texture t : leftFrames) t.dispose();
+        for (Texture t : rightFrames) t.dispose();
 
         stepSound.dispose();
         resetLevelSound.dispose();
@@ -625,12 +537,9 @@ public abstract class BasePlayScreen implements Screen {
             Usuario usuario = ManejoUsuarios.UsuarioActivo;
             if (usuario != null && usuario.configuracion != null) {
                 Integer v = usuario.configuracion.get(name);
-                if (v != null && v != 0) {
-                    return v;
-                }
+                if (v != null && v != 0) return v;
             }
-        } catch (Exception ignored) {
-        }
+        } catch (Exception ignored) { }
         return def;
     }
 
@@ -640,18 +549,10 @@ public abstract class BasePlayScreen implements Screen {
         kLeft = getCfgKey("MoverIzq", Input.Keys.LEFT);
         kRight = getCfgKey("MoverDer", Input.Keys.RIGHT);
 
-        if (Gdx.input.isKeyPressed(kUp)) {
-            return Directions.UP;
-        }
-        if (Gdx.input.isKeyPressed(kDown)) {
-            return Directions.DOWN;
-        }
-        if (Gdx.input.isKeyPressed(kLeft)) {
-            return Directions.LEFT;
-        }
-        if (Gdx.input.isKeyPressed(kRight)) {
-            return Directions.RIGHT;
-        }
+        if (Gdx.input.isKeyPressed(kUp)) return Directions.UP;
+        if (Gdx.input.isKeyPressed(kDown)) return Directions.DOWN;
+        if (Gdx.input.isKeyPressed(kLeft)) return Directions.LEFT;
+        if (Gdx.input.isKeyPressed(kRight)) return Directions.RIGHT;
         return null;
     }
 
@@ -669,9 +570,7 @@ public abstract class BasePlayScreen implements Screen {
     }
 
     protected void advanceTween(float delta) {
-        if (!tweenActive) {
-            return;
-        }
+        if (!tweenActive) return;
 
         tweenTime += delta;
         float t = tweenTime / tweenDuration;
@@ -693,29 +592,16 @@ public abstract class BasePlayScreen implements Screen {
     protected Texture pickFrameForFacing() {
         Texture[] arr;
         switch (facing) {
-            case UP:
-                arr = upFrames;
-                break;
-            case DOWN:
-                arr = downFrames;
-                break;
-            case LEFT:
-                arr = leftFrames;
-                break;
-            case RIGHT:
-                arr = rightFrames;
-                break;
-            default:
-                arr = downFrames;
+            case UP:    arr = upFrames;    break;
+            case DOWN:  arr = downFrames;  break;
+            case LEFT:  arr = leftFrames;  break;
+            case RIGHT: arr = rightFrames; break;
+            default:    arr = downFrames;
         }
-        if (!tweenActive) {
-            return arr[1];
-        }
+        if (!tweenActive) return arr[1];
         float t = tweenTime / tweenDuration;
         int idx = (int) (t * 3.0f);
-        if (idx > 2) {
-            idx = 2;
-        }
+        if (idx > 2) idx = 2;
         return arr[idx];
     }
 
@@ -734,15 +620,10 @@ public abstract class BasePlayScreen implements Screen {
     private void savePartida(String fechaStr, int intentos, String logros, int tiempoSeg, int nivel) {
         try {
             Usuario u = ManejoUsuarios.UsuarioActivo;
-            if (u == null) {
-                return;
-            }
-            if (u.historial == null) {
-                return;
-            }
+            if (u == null) return;
+            if (u.historial == null) return;
             Partida p = new Partida(fechaStr, intentos, logros, tiempoSeg, nivel);
             u.historial.add(p);
-        } catch (Exception ignored) {
-        }
+        } catch (Exception ignored) { }
     }
 }
