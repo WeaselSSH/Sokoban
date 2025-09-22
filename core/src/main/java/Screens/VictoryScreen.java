@@ -26,7 +26,7 @@ public final class VictoryScreen implements Screen {
     private FitViewport viewport;
     private SpriteBatch batch;
 
-    private Texture gradientBg; // fondo degradado
+    private Texture gradientBg;
     private Texture px;
 
     public VictoryScreen(Game app, int level, int moves, int pushes, int totalSeconds,
@@ -49,7 +49,6 @@ public final class VictoryScreen implements Screen {
         Pixmap grad = new Pixmap(1, GameConfig.PX_HEIGHT, Pixmap.Format.RGBA8888);
         for (int y = 0; y < GameConfig.PX_HEIGHT; y++) {
             float t = (float) y / (float) GameConfig.PX_HEIGHT;
-            
             float r = 0.05f + 0.05f * t;
             float g = 0.07f + 0.05f * t;
             float b = 0.10f + 0.05f * t;
@@ -75,14 +74,15 @@ public final class VictoryScreen implements Screen {
         batch.setProjectionMatrix(camera.combined);
 
         batch.begin();
-        
         batch.draw(gradientBg, 0, 0, GameConfig.PX_WIDTH, GameConfig.PX_HEIGHT);
         drawPanelAndStats();
         batch.end();
     }
 
     private void handleInput() {
-        if (input.isKeyJustPressed(ENTER)) {
+        boolean isLast = level >= maxAvailableFloor;
+
+        if (!isLast && input.isKeyJustPressed(ENTER)) {
             int next = Math.min(level + 1, maxAvailableFloor);
             app.setScreen(new GameScreen(app, next));
         }
@@ -92,12 +92,13 @@ public final class VictoryScreen implements Screen {
     }
 
     private void drawPanelAndStats() {
+        boolean isLast = level >= maxAvailableFloor;
+
         float pw = GameConfig.PX_WIDTH - 120f;
-        float ph = 160f;
+        float ph = 180f;
         float x0 = 60f;
         float y0 = GameConfig.PX_HEIGHT - ph - 70f;
 
-        // panel negro translúcido
         batch.setColor(0f, 0f, 0f, 0.6f);
         batch.draw(px, x0, y0, pw, ph);
         batch.setColor(Color.WHITE);
@@ -109,8 +110,16 @@ public final class VictoryScreen implements Screen {
         float x = x0 + 26f;
         float y = y0 + ph - 28f;
 
-        font.setColor(Color.GOLD);
-        font.draw(batch, "¡Nivel " + level + " completado!", x, y);
+        font.setColor(Color.valueOf("E6DFC9"));
+        if (level == 0) {
+            font.draw(batch, "Felicidades por pasarte el tutorial", x, y);
+        } else if (isLast) {
+            font.draw(batch, "FELICIDADES POR PASARTE EL JUEGO!", x, y);
+            y -= 28f;
+            font.draw(batch, "GRACIAS POR JUGARLO!", x, y);
+        } else {
+            font.draw(batch, "Nivel " + level + " completado", x, y);
+        }
         y -= 32f;
 
         font.setColor(Color.WHITE);
@@ -118,7 +127,11 @@ public final class VictoryScreen implements Screen {
         y -= 40f;
 
         font.setColor(Color.valueOf("FFE27A"));
-        font.draw(batch, "[ENTER] Siguiente nivel     [ESC] Volver al selector", x, y);
+        if (isLast) {
+            font.draw(batch, "[ESC] Volver al selector", x, y);
+        } else {
+            font.draw(batch, "[ENTER] Siguiente nivel     [ESC] Volver al selector", x, y);
+        }
         font.setColor(Color.WHITE);
     }
 
@@ -142,11 +155,7 @@ public final class VictoryScreen implements Screen {
     @Override
     public void dispose() {
         batch.dispose();
-        if (px != null) {
-            px.dispose();
-        }
-        if (gradientBg != null) {
-            gradientBg.dispose();
-        }
+        px.dispose();
+        gradientBg.dispose();
     }
 }

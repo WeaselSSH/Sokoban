@@ -11,7 +11,6 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
-import com.badlogic.gdx.utils.Scaling;
 import com.elkinedwin.LogicaUsuario.ManejoUsuarios;
 import com.elkinedwin.LogicaUsuario.Partida;
 
@@ -38,7 +37,6 @@ public class HistorialScreen extends BaseScreen {
         smallFont = genFont(26, "BFC4D0");
 
         Label.LabelStyle titleStyle = new Label.LabelStyle(titleFont, titleFont.getColor());
-        Label.LabelStyle h2Style    = new Label.LabelStyle(h2Font,    h2Font.getColor());
         Label.LabelStyle keyStyle   = new Label.LabelStyle(bodyFont,  new Color(1,1,1,0.85f));
         Label.LabelStyle valStyle   = new Label.LabelStyle(bodyFont,  Color.WHITE);
 
@@ -96,7 +94,7 @@ public class HistorialScreen extends BaseScreen {
                 : null;
 
         if (historial == null || historial.isEmpty()) {
-            Label empty = new Label("Aún no hay partidas registradas", new Label.LabelStyle(h2Font, new Color(1,1,1,0.8f)));
+            Label empty = new Label("Aun no hay partidas registradas", new Label.LabelStyle(h2Font, new Color(1,1,1,0.8f)));
             card.add(empty).left().pad(12f).row();
         } else {
             // Encabezados

@@ -1,29 +1,24 @@
 package Screens;
 
-import static com.badlogic.gdx.Gdx.files;
-import static com.badlogic.gdx.Gdx.input;
-import static com.badlogic.gdx.Input.Keys.*;
-
-import com.badlogic.gdx.Game;
-import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.utils.ScreenUtils;
-import com.badlogic.gdx.utils.viewport.FitViewport;
-import com.badlogic.gdx.audio.Sound;
-import com.badlogic.gdx.audio.Music;
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import GameLogic.Directions;
 import GameLogic.GameConfig;
 import GameLogic.MovementThread;
 import GameLogic.Player;
 import GameLogic.SokobanGame;
+import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -34,18 +29,17 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
-import com.elkinedwin.LogicaUsuario.Usuario;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-
+import com.badlogic.gdx.utils.ScreenUtils;
+import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.elkinedwin.LogicaUsuario.AudioBus;
 import com.elkinedwin.LogicaUsuario.AudioX;
 import com.elkinedwin.LogicaUsuario.ManejoUsuarios;
-
-// historial
 import com.elkinedwin.LogicaUsuario.Partida;
+import com.elkinedwin.LogicaUsuario.Usuario;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 public abstract class BasePlayScreen implements Screen {
 
@@ -101,27 +95,30 @@ public abstract class BasePlayScreen implements Screen {
 
     private Texture dimTexture, btnTexture;
 
-    // intento actual (para récords del intento ganador)
     protected float timeChronometer = 0f;
-    // sesión completa del nivel (acumula aunque reinicies)
     protected float levelSessionTime = 0f;
     private boolean levelSessionTimeSubmitted = false;
 
     protected int prevPushes;
 
-    // === Campos Historial ===
     private long runStartMillis = 0L;
-    private String startDateStr = null;   // yyyy/MM/dd HH-mm-ss
-    private int restartCount = 0;         // arranca en 1
+    private String startDateStr = null;
+    private int restartCount = 0;
     private boolean historyRecorded = false;
+    
+    private VictoryPhase victoryPhase = VictoryPhase.NONE;
+    private float victoryTimer = 0f;
+    private Music victoryMusic = null;
+    private int victoryMoves, victoryPushes, victorySeconds;
 
     public BasePlayScreen(Game app, int level) {
         this.app = app;
         this.level = level;
     }
 
-    // niveles jugables reales (1..7)
-    private boolean isGameplayLevel() { return level >= 1 && level <= 7; }
+    private boolean isGameplayLevel() {
+        return level >= 1 && level <= 7;
+    }
 
     protected void setPlayer(Player player) {
         this.player = player;
@@ -190,7 +187,8 @@ public abstract class BasePlayScreen implements Screen {
 
         TextButton exitButton = new TextButton("Salir del Juego", buttonStyle);
         exitButton.addListener(new ClickListener() {
-            @Override public void clicked(InputEvent event, float x, float y) {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
                 app.setScreen(new MenuScreen(app));
             }
         });
@@ -201,11 +199,10 @@ public abstract class BasePlayScreen implements Screen {
         pauseStage.addActor(pauseRoot);
         pauseRoot.setVisible(false);
 
-        // === Inicializar historial ===
         historyRecorded = false;
         runStartMillis = System.currentTimeMillis();
-        startDateStr = formatDate(runStartMillis); // yyyy/MM/dd HH-mm-ss
-        restartCount = 1; // <-- primer intento cuenta como 1
+        startDateStr = formatDate(runStartMillis);
+        restartCount = 1;
 
         onShowExtra();
     }
@@ -237,18 +234,20 @@ public abstract class BasePlayScreen implements Screen {
         pauseStage.getViewport().update(width, height, true);
     }
 
-    @Override public void pause() { }
-    @Override public void resume() { }
+    @Override
+    public void pause() {
+    }
+
+    @Override
+    public void resume() {
+    }
 
     @Override
     public void hide() {
-        // si salimos sin victoria, sumar sesión solo en niveles jugables
         submitLevelSessionTime();
-
-        // registrar como intento sin victoria si aplica
         if (isGameplayLevel() && !historyRecorded) {
             int elapsedSec = (int) ((System.currentTimeMillis() - runStartMillis) / 1000L);
-            String logros = "Buen intento, ¡sigue mejorando!";
+            String logros = "Buen intento, sigue mejorando";
             savePartida(startDateStr, restartCount, logros, elapsedSec, level);
             historyRecorded = true;
         }
@@ -257,9 +256,20 @@ public abstract class BasePlayScreen implements Screen {
     @Override
     public void dispose() {
         try {
-            if (movementThreadLogic != null) movementThreadLogic.stop();
-            if (movementThread != null) movementThread.interrupt();
-        } catch (Exception ignored) { }
+            if (movementThreadLogic != null) {
+                movementThreadLogic.stop();
+            }
+            if (movementThread != null) {
+                movementThread.interrupt();
+            }
+        } catch (Exception ignored) {
+        }
+        if (victoryMusic != null) {
+            victoryMusic.stop();
+            AudioBus.unregisterMusic(victoryMusic);
+            victoryMusic.dispose();
+            victoryMusic = null;
+        }
         pauseStage.dispose();
         onDisposeExtra();
         batch.dispose();
@@ -267,36 +277,59 @@ public abstract class BasePlayScreen implements Screen {
     }
 
     protected abstract void onShowExtra();
+
     protected abstract void onDrawMap();
+
     protected abstract void onDrawHUD();
+
     protected abstract void onDisposeExtra();
 
     protected void onUpdate(float delta) {
-
-        if (input.isKeyJustPressed(kPause)) {
+        if (Gdx.input.isKeyJustPressed(kPause)) {
             paused = !paused;
-
             if (paused) {
                 directionQueue.clear();
                 pauseRoot.setVisible(true);
-                if (bgMusic != null) bgMusic.pause();
-                input.setInputProcessor(pauseStage);
+                if (bgMusic != null) {
+                    bgMusic.pause();
+                }
+                Gdx.input.setInputProcessor(pauseStage);
             } else {
                 pauseRoot.setVisible(false);
-                if (bgMusic != null) bgMusic.play();
-                input.setInputProcessor(null);
+                if (bgMusic != null) {
+                    bgMusic.play();
+                }
+                Gdx.input.setInputProcessor(null);
             }
         }
 
-        if (paused) return;
+        if (paused) {
+            return;
+        }
 
-        // intento (récords)
+        if (victoryPhase == VictoryPhase.FREEZE) {
+            victoryTimer += delta;
+            if (victoryTimer >= 2.0f) {
+                victoryPhase = VictoryPhase.PLAYING;
+                victoryTimer = 0f;
+                if (victoryMusic != null) {
+                    victoryMusic.play();
+                }
+            }
+            return;
+        }
+        if (victoryPhase == VictoryPhase.PLAYING) {
+            return;
+        }
+
         timeChronometer += delta;
+        if (isGameplayLevel()) {
+            levelSessionTime += delta;
+        }
 
-        // sesión acumulada SOLO en niveles 1..7
-        if (isGameplayLevel()) levelSessionTime += delta;
-
-        if (!tweenActive) handleHeldInput(delta);
+        if (!tweenActive) {
+            handleHeldInput(delta);
+        }
 
         detectAndAnimateMovement();
 
@@ -309,7 +342,9 @@ public abstract class BasePlayScreen implements Screen {
     }
 
     private void handleHeldInput(float delta) {
-        if (tweenActive || moveRequested) return;
+        if (tweenActive || moveRequested) {
+            return;
+        }
 
         Directions currentHeld = readHeldDirection();
         if (currentHeld == null) {
@@ -338,8 +373,12 @@ public abstract class BasePlayScreen implements Screen {
     }
 
     private void enqueueDirection(Directions dir) {
-        if (tweenActive || moveRequested) return;
-        if (directionQueue.offer(dir)) moveRequested = true;
+        if (tweenActive || moveRequested) {
+            return;
+        }
+        if (directionQueue.offer(dir)) {
+            moveRequested = true;
+        }
     }
 
     private void detectAndAnimateMovement() {
@@ -368,20 +407,22 @@ public abstract class BasePlayScreen implements Screen {
                 }
             }
 
-            AudioX.play(stepSound, 1f);
+            AudioX.play(stepSound, 1.0f);
 
             startTween(startPX, startPY, endPX, endPY);
 
             game.recomputeVictory();
             if (game.isVictory()) {
-                if (bgMusic != null) bgMusic.stop();
+                if (bgMusic != null) {
+                    bgMusic.stop();
+                }
 
-                int totalSec = (int) timeChronometer;
-                int moves = p.getMoveCount();
-                int pushes = p.getPushCount();
+                victorySeconds = (int) timeChronometer;
+                victoryMoves = p.getMoveCount();
+                victoryPushes = p.getPushCount();
 
                 boolean newBestSteps = false;
-                boolean newBestTime  = false;
+                boolean newBestTime = false;
 
                 try {
                     if (level == 0) {
@@ -392,32 +433,65 @@ public abstract class BasePlayScreen implements Screen {
                         Usuario u = ManejoUsuarios.UsuarioActivo;
                         if (u != null) {
                             int bestSteps = u.getMayorPuntuacion(level);
-                            if (bestSteps == 0 || moves < bestSteps) newBestSteps = true;
+                            if (bestSteps == 0 || victoryMoves < bestSteps) {
+                                newBestSteps = true;
+                            }
 
                             int bestTime = u.getMejorTiempoPorNivel(level);
-                            if (bestTime == 0 || totalSec < bestTime) newBestTime = true;
+                            if (bestTime == 0 || victorySeconds < bestTime) {
+                                newBestTime = true;
+                            }
 
                             u.setNivelCompletado(level, true);
-                            if (newBestSteps) u.setMayorPuntuacion(level, moves);
-                            if (newBestTime)  u.setMejorTiempoPorNivel(level, totalSec);
+                            if (newBestSteps) {
+                                u.setMayorPuntuacion(level, victoryMoves);
+                            }
+                            if (newBestTime) {
+                                u.setMejorTiempoPorNivel(level, victorySeconds);
+                            }
                         }
                     }
-                } catch (Exception ignored) {}
+                } catch (Exception ignored) {
+                }
 
-                // registrar partida ganada
                 if (isGameplayLevel() && !historyRecorded) {
                     int elapsedSecReal = (int) ((System.currentTimeMillis() - runStartMillis) / 1000L);
                     StringBuilder lg = new StringBuilder("Haz completado el nivel");
-                    if (newBestSteps) lg.append("\nNuevo récord de pasos");
-                    if (newBestTime)  lg.append("\nNuevo récord de tiempo");
+                    if (newBestSteps) {
+                        lg.append("\nNuevo récord de pasos");
+                    }
+                    if (newBestTime) {
+                        lg.append("\nNuevo récord de tiempo");
+                    }
                     savePartida(startDateStr, restartCount, lg.toString(), elapsedSecReal, level);
                     historyRecorded = true;
                 }
 
-                // suma de sesión
                 submitLevelSessionTime();
 
-                app.setScreen(new VictoryScreen(app, level, moves, pushes, totalSec, 7, font));
+                directionQueue.clear();
+                heldDirection = null;
+                moveRequested = false;
+                tweenActive = false;
+
+                String path = (level == 7)
+                        ? "audios/level_completed_epic.mp3"
+                        : "audios/level_completed.mp3";
+                victoryMusic = AudioX.newMusic(path);
+                victoryMusic.setLooping(false);
+                victoryMusic.setOnCompletionListener(m -> {
+                    if (victoryMusic != null) {
+                        victoryMusic.stop();
+                        AudioBus.unregisterMusic(victoryMusic);
+                        victoryMusic.dispose();
+                        victoryMusic = null;
+                    }
+                    app.setScreen(new VictoryScreen(app, level, victoryMoves, victoryPushes, victorySeconds, 7, font));
+                });
+
+                victoryPhase = VictoryPhase.FREEZE;
+                victoryTimer = 0f;
+
                 return;
             }
 
@@ -434,33 +508,31 @@ public abstract class BasePlayScreen implements Screen {
             levelSessionTimeSubmitted = true;
             return;
         }
-        if (levelSessionTimeSubmitted) return;
+        if (levelSessionTimeSubmitted) {
+            return;
+        }
 
         try {
             Usuario u = ManejoUsuarios.UsuarioActivo;
             if (u != null) {
                 int secs = (int) levelSessionTime;
-
                 u.setTiempoJugadoTotal(u.getTiempoJugadoTotal() + secs);
-
                 int acumNivel = u.getTiempoPorNivel(level);
                 u.setTiempoPorNivel(level, acumNivel + secs);
-
                 int partidasNivel = u.getPartidasPorNivel(level);
                 u.setPartidasPorNivel(level, partidasNivel + 1);
-
                 u.setPartidasTotales(u.getPartidasTotales() + 1);
-
                 u.recalcularTiempoPromedioNivel(level);
             }
-        } catch (Exception ignored) { }
+        } catch (Exception ignored) {
+        }
 
         levelSessionTime = 0f;
         levelSessionTimeSubmitted = true;
     }
 
     protected void loadCommonAssets() {
-        fontGenerator = new FreeTypeFontGenerator(files.internal("fonts/pokemon_fire_red.ttf"));
+        fontGenerator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/pokemon_fire_red.ttf"));
         fontParameter = new FreeTypeFontParameter();
         fontParameter.size = 20;
         fontParameter.color = Color.WHITE;
@@ -514,7 +586,7 @@ public abstract class BasePlayScreen implements Screen {
     }
 
     protected Texture load(String path) {
-        return new Texture(files.internal(path));
+        return new Texture(Gdx.files.internal(path));
     }
 
     protected void disposeCommonAssets() {
@@ -522,10 +594,18 @@ public abstract class BasePlayScreen implements Screen {
         wallTexture.dispose();
         btnTexture.dispose();
 
-        for (Texture t : downFrames) t.dispose();
-        for (Texture t : upFrames) t.dispose();
-        for (Texture t : leftFrames) t.dispose();
-        for (Texture t : rightFrames) t.dispose();
+        for (Texture t : downFrames) {
+            t.dispose();
+        }
+        for (Texture t : upFrames) {
+            t.dispose();
+        }
+        for (Texture t : leftFrames) {
+            t.dispose();
+        }
+        for (Texture t : rightFrames) {
+            t.dispose();
+        }
 
         stepSound.dispose();
         resetLevelSound.dispose();
@@ -540,25 +620,36 @@ public abstract class BasePlayScreen implements Screen {
 
     protected int getCfgKey(String name, int def) {
         try {
-            Usuario usuario = com.elkinedwin.LogicaUsuario.ManejoUsuarios.UsuarioActivo;
+            Usuario usuario = ManejoUsuarios.UsuarioActivo;
             if (usuario != null && usuario.configuracion != null) {
                 Integer v = usuario.configuracion.get(name);
-                if (v != null && v != 0) return v;
+                if (v != null && v != 0) {
+                    return v;
+                }
             }
-        } catch (Exception ignored) { }
+        } catch (Exception ignored) {
+        }
         return def;
     }
 
     protected Directions readHeldDirection() {
-        kUp = getCfgKey("MoverArriba", UP);
-        kDown = getCfgKey("MoverAbajo", DOWN);
-        kLeft = getCfgKey("MoverIzq", LEFT);
-        kRight = getCfgKey("MoverDer", RIGHT);
+        kUp = getCfgKey("MoverArriba", Input.Keys.UP);
+        kDown = getCfgKey("MoverAbajo", Input.Keys.DOWN);
+        kLeft = getCfgKey("MoverIzq", Input.Keys.LEFT);
+        kRight = getCfgKey("MoverDer", Input.Keys.RIGHT);
 
-        if (input.isKeyPressed(kUp)) return Directions.UP;
-        if (input.isKeyPressed(kDown)) return Directions.DOWN;
-        if (input.isKeyPressed(kLeft)) return Directions.LEFT;
-        if (input.isKeyPressed(kRight)) return Directions.RIGHT;
+        if (Gdx.input.isKeyPressed(kUp)) {
+            return Directions.UP;
+        }
+        if (Gdx.input.isKeyPressed(kDown)) {
+            return Directions.DOWN;
+        }
+        if (Gdx.input.isKeyPressed(kLeft)) {
+            return Directions.LEFT;
+        }
+        if (Gdx.input.isKeyPressed(kRight)) {
+            return Directions.RIGHT;
+        }
         return null;
     }
 
@@ -576,7 +667,9 @@ public abstract class BasePlayScreen implements Screen {
     }
 
     protected void advanceTween(float delta) {
-        if (!tweenActive) return;
+        if (!tweenActive) {
+            return;
+        }
 
         tweenTime += delta;
         float t = tweenTime / tweenDuration;
@@ -596,30 +689,40 @@ public abstract class BasePlayScreen implements Screen {
     }
 
     protected Texture pickFrameForFacing() {
-        Texture arr[];
+        Texture[] arr;
         switch (facing) {
-            case UP:    arr = upFrames;    break;
-            case DOWN:  arr = downFrames;  break;
-            case LEFT:  arr = leftFrames;  break;
-            case RIGHT: arr = rightFrames; break;
-            default:    arr = downFrames;
+            case UP:
+                arr = upFrames;
+                break;
+            case DOWN:
+                arr = downFrames;
+                break;
+            case LEFT:
+                arr = leftFrames;
+                break;
+            case RIGHT:
+                arr = rightFrames;
+                break;
+            default:
+                arr = downFrames;
         }
-        if (!tweenActive) return arr[1];
+        if (!tweenActive) {
+            return arr[1];
+        }
         float t = tweenTime / tweenDuration;
         int idx = (int) (t * 3.0f);
-        if (idx > 2) idx = 2;
+        if (idx > 2) {
+            idx = 2;
+        }
         return arr[idx];
     }
 
-    // === Auxiliares historial ===
-    /** Llamar desde GameScreen.resetLevel() para contar intentos. */
     protected void notifyRestart() {
-        restartCount++; // inicia en 1
+        restartCount++;
     }
 
     private String formatDate(long millis) {
         try {
-            // hora con guiones (HH-mm-ss)
             return new SimpleDateFormat("yyyy/MM/dd HH-mm-ss").format(new Date(millis));
         } catch (Exception e) {
             return String.valueOf(millis);
@@ -629,10 +732,15 @@ public abstract class BasePlayScreen implements Screen {
     private void savePartida(String fechaStr, int intentos, String logros, int tiempoSeg, int nivel) {
         try {
             Usuario u = ManejoUsuarios.UsuarioActivo;
-            if (u == null) return;
-            if (u.historial == null) return;
+            if (u == null) {
+                return;
+            }
+            if (u.historial == null) {
+                return;
+            }
             Partida p = new Partida(fechaStr, intentos, logros, tiempoSeg, nivel);
             u.historial.add(p);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 }

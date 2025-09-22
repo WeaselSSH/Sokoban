@@ -29,14 +29,15 @@ public final class GameScreen extends BasePlayScreen {
         boxTexturePlaced = load("textures/boxPlaced.png");
         targetTexture = load("textures/target.png");
 
-        // antes: boxPlacedSound = loadSound("audios/box_placed.wav");
         boxPlacedSound = AudioX.newSound("audios/box_placed.wav");
     }
 
     @Override
     protected void onUpdate(float delta) {
         super.onUpdate(delta);
-        if (paused) return;
+        if (paused) {
+            return;
+        }
 
         int reiniciarKey = getCfgKey("Reiniciar", R);
         if (input.isKeyJustPressed(reiniciarKey)) {
@@ -45,17 +46,18 @@ public final class GameScreen extends BasePlayScreen {
     }
 
     private void resetLevel() {
-        // antes: resetLevelSound.play(1.0f);
         AudioX.play(resetLevelSound, 1.0f);
 
-        // >>>> ÚNICO CAMBIO PARA CONTAR INTENTOS <<<<
         notifyRestart();
-        // <<<< --------------------------------- >>>>
-
         try {
-            if (movementThreadLogic != null) movementThreadLogic.stop();
-            if (movementThread != null) movementThread.interrupt();
-        } catch (Exception ignored) {}
+            if (movementThreadLogic != null) {
+                movementThreadLogic.stop();
+            }
+            if (movementThread != null) {
+                movementThread.interrupt();
+            }
+        } catch (Exception ignored) {
+        }
 
         game.startLevel(level);
         setPlayer(game.getPlayer());
