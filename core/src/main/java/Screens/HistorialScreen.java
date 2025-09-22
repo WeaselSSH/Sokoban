@@ -2,6 +2,7 @@ package Screens;
 
 import static com.badlogic.gdx.Gdx.files;
 
+import GameLogic.Lang;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -25,39 +26,44 @@ public class HistorialScreen extends BaseScreen {
 
     private Texture texPanelBg, texDivider;
 
-    public HistorialScreen(Game game) { this.game = game; }
+    public HistorialScreen(Game game) {
+        this.game = game;
+    }
 
     @Override
     protected void onShow() {
-        // Fuentes similares a MiPerfilScreen (mismo archivo)
         generator = new FreeTypeFontGenerator(files.internal("fonts/pokemon_fire_red.ttf"));
         titleFont = genFont(88, "E6DFC9");
-        h2Font    = genFont(48, "E6DFC9");
-        bodyFont  = genFont(34, "E6DFC9");
+        h2Font = genFont(48, "E6DFC9");
+        bodyFont = genFont(34, "E6DFC9");
         smallFont = genFont(26, "BFC4D0");
 
         Label.LabelStyle titleStyle = new Label.LabelStyle(titleFont, titleFont.getColor());
-        Label.LabelStyle keyStyle   = new Label.LabelStyle(bodyFont,  new Color(1,1,1,0.85f));
-        Label.LabelStyle valStyle   = new Label.LabelStyle(bodyFont,  Color.WHITE);
+        Label.LabelStyle keyStyle = new Label.LabelStyle(bodyFont, new Color(1, 1, 1, 0.85f));
+        Label.LabelStyle valStyle = new Label.LabelStyle(bodyFont, Color.WHITE);
 
-        texPanelBg  = makeColorTex(255, 255, 255, 22);
-        texDivider  = makeColorTex(255, 255, 255, 38);
+        texPanelBg = makeColorTex(255, 255, 255, 22);
+        texDivider = makeColorTex(255, 255, 255, 38);
 
-        TextureRegionDrawable panelBg   = new TextureRegionDrawable(new TextureRegion(texPanelBg));
+        TextureRegionDrawable panelBg = new TextureRegionDrawable(new TextureRegion(texPanelBg));
         TextureRegionDrawable dividerBg = new TextureRegionDrawable(new TextureRegion(texDivider));
 
-        // Barra superior con botón volver
         TextButton.TextButtonStyle backStyle = new TextButton.TextButtonStyle();
         backStyle.font = bodyFont;
         backStyle.fontColor = Color.WHITE;
-        Texture transparent = makeColorTex(0,0,0,0);
+        Texture transparent = makeColorTex(0, 0, 0, 0);
         TextureRegionDrawable trd = new TextureRegionDrawable(new TextureRegion(transparent));
-        backStyle.up = trd; backStyle.over = trd; backStyle.down = trd; backStyle.checked = trd; backStyle.disabled = trd;
+        backStyle.up = trd;
+        backStyle.over = trd;
+        backStyle.down = trd;
+        backStyle.checked = trd;
+        backStyle.disabled = trd;
 
-        TextButton btnBack = new TextButton("Volver", backStyle);
+        TextButton btnBack = new TextButton(Lang.back(), backStyle);
         btnBack.getLabel().setColor(Color.WHITE);
         btnBack.addListener(new com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
-            @Override public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
+            @Override
+            public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
                 game.setScreen(new MenuScreen(game));
             }
         });
@@ -70,7 +76,6 @@ public class HistorialScreen extends BaseScreen {
         topbar.add(btnBack).left().pad(12f);
         root.add(topbar).expandX().fillX().row();
 
-        // Contenido scrolleable
         Table content = new Table();
         content.top().pad(24f);
         content.defaults().pad(10f);
@@ -79,10 +84,8 @@ public class HistorialScreen extends BaseScreen {
         sp.setFadeScrollBars(false);
         root.add(sp).expand().fill().pad(0, 16f, 16f, 16f).row();
 
-        // Título
-        content.add(new Label("Historial de Partidas", titleStyle)).center().padBottom(10f).row();
+        content.add(new Label(Lang.history(), titleStyle)).center().padBottom(10f).row();
 
-        // Tarjeta
         Table card = new Table();
         card.setBackground(panelBg);
         card.pad(14f);
@@ -94,23 +97,22 @@ public class HistorialScreen extends BaseScreen {
                 : null;
 
         if (historial == null || historial.isEmpty()) {
-            Label empty = new Label("Aun no hay partidas registradas", new Label.LabelStyle(h2Font, new Color(1,1,1,0.8f)));
+            Label empty = new Label(Lang.historyEmpty(), new Label.LabelStyle(h2Font, new Color(1, 1, 1, 0.8f)));
             card.add(empty).left().pad(12f).row();
         } else {
-            // Encabezados
             Table header = new Table();
             header.defaults().left().pad(6f);
-            header.add(new Label("Fecha", keyStyle)).width(280f);
-            header.add(new Label("Nivel", keyStyle)).width(120f);
-            header.add(new Label("Tiempo", keyStyle)).width(160f);
-            header.add(new Label("Intentos", keyStyle)).width(140f);
-            header.add(new Label("Logros", keyStyle)).growX().row();
+            header.add(new Label(Lang.historyDate(), keyStyle)).width(280f);
+            header.add(new Label(Lang.hudLevel(), keyStyle)).width(120f);
+            header.add(new Label(Lang.historyTime(), keyStyle)).width(160f);
+            header.add(new Label(Lang.historyAttempts(), keyStyle)).width(140f);
+            header.add(new Label(Lang.historyAchievements(), keyStyle)).growX().row();
             card.add(header).expandX().fillX().row();
 
             Image divTop = new Image(dividerBg);
             card.add(divTop).height(1.2f).expandX().fillX().row();
 
-            for (int i = historial.size() - 1; i >= 0; i--) { // más reciente primero
+            for (int i = historial.size() - 1; i >= 0; i--) {
                 Partida p = historial.get(i);
 
                 String fecha = safeText(p.getFecha());
@@ -126,7 +128,6 @@ public class HistorialScreen extends BaseScreen {
                 row.add(new Label(tiempo, valStyle)).width(160f);
                 row.add(new Label(intentos, valStyle)).width(140f);
 
-                // Logros: multilínea bonito
                 Label lLogros = new Label(logros, valStyle);
                 lLogros.setWrap(true);
                 row.add(lLogros).growX().width(520f).row();
@@ -143,46 +144,49 @@ public class HistorialScreen extends BaseScreen {
 
     private BitmapFont genFont(int size, String hex) {
         FreeTypeFontGenerator.FreeTypeFontParameter p = new FreeTypeFontGenerator.FreeTypeFontParameter();
-        p.size = size; p.color = Color.valueOf(hex);
+        p.size = size;
+        p.color = Color.valueOf(hex);
         return generator.generateFont(p);
     }
 
     private Texture makeColorTex(int r, int g, int b, int a) {
         Pixmap pm = new Pixmap(2, 2, Pixmap.Format.RGBA8888);
-        pm.setColor(r/255f, g/255f, b/255f, a/255f);
+        pm.setColor(r / 255f, g / 255f, b / 255f, a / 255f);
         pm.fill();
-        Texture t = new Texture(pm); pm.dispose();
+        Texture t = new Texture(pm);
+        pm.dispose();
         return t;
     }
 
-    private String formatHuman(int sec){
-        if (sec <= 0) return "0s";
+    private String formatHuman(int sec) {
+        if (sec <= 0) {
+            return "0s";
+        }
         int h = sec / 3600;
         int m = (sec % 3600) / 60;
         int s = sec % 60;
-        if (h > 0) return String.format("%d:%02d:%02d", h, m, s);
+        if (h > 0) {
+            return String.format("%d:%02d:%02d", h, m, s);
+        }
         return String.format("%02d:%02d", m, s);
     }
 
-    private String safeText(String s){
-        if (s == null || s.trim().isEmpty()) return "-";
+    private String safeText(String s) {
+        if (s == null || s.trim().isEmpty()) {
+            return "-";
+        }
         return s;
-    }
-
-    @Override
-    public void hide() {
-        super.hide();
     }
 
     @Override
     public void dispose() {
         super.dispose();
-        if (generator != null) generator.dispose();
-        if (titleFont != null) titleFont.dispose();
-        if (h2Font != null)    h2Font.dispose();
-        if (bodyFont != null)  bodyFont.dispose();
-        if (smallFont != null) smallFont.dispose();
-        if (texPanelBg != null) texPanelBg.dispose();
-        if (texDivider != null) texDivider.dispose();
+        generator.dispose();
+        titleFont.dispose();
+        h2Font.dispose();
+        bodyFont.dispose();
+        smallFont.dispose();
+        texPanelBg.dispose();
+        texDivider.dispose();
     }
 }

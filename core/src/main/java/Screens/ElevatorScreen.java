@@ -2,6 +2,7 @@ package Screens;
 
 import GameLogic.GameConfig;
 import GameLogic.TileMap;
+import GameLogic.Lang;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import static com.badlogic.gdx.Gdx.input;
@@ -36,10 +37,10 @@ public final class ElevatorScreen extends BasePlayScreen {
     private Texture texOk, texLock;
 
     // Colores
-    private static final Color COLOR_TITLE    = new Color(0.95f, 0.95f, 1f, 1f);
+    private static final Color COLOR_TITLE = new Color(0.95f, 0.95f, 1f, 1f);
     private static final Color COLOR_UNLOCKED = new Color(0.94f, 0.94f, 1f, 1f);
-    private static final Color COLOR_LOCKED   = new Color(1f, 1f, 1f, 0.80f);
-    private static final Color SHADOW_GREEN   = new Color(0.30f, 1f, 0.30f, 0.45f);
+    private static final Color COLOR_LOCKED = new Color(1f, 1f, 1f, 0.80f);
+    private static final Color SHADOW_GREEN = new Color(0.30f, 1f, 0.30f, 0.45f);
     private static final Color COLOR_SELECTED = new Color(1f, 0.85f, 0.20f, 1f);
 
     private final GlyphLayout glyph = new GlyphLayout();
@@ -50,18 +51,20 @@ public final class ElevatorScreen extends BasePlayScreen {
     private static final float PANEL_X = 80f;
     private static final float TITLE_Y = GameConfig.PX_HEIGHT - 24f;
     private static final float START_Y = TITLE_Y - 28f;
-    private static final float STEP_Y  = 26f;
-    private static final float ROW_H   = STEP_Y;
+    private static final float STEP_Y = 26f;
+    private static final float ROW_H = STEP_Y;
     private static final float PANEL_PADDING_H = 12f;
     private static final float PANEL_PADDING_V = 10f;
 
     // Alineación de iconos
     private static final float ICON_GAP_X = 8f;
-    private static final float LOCK_SIZE  = 18f;
-    private static final float OK_BASE    = 20f;
-    private static final float OK_PULSE   = 2f;
+    private static final float LOCK_SIZE = 18f;
+    private static final float OK_BASE = 20f;
+    private static final float OK_PULSE = 2f;
 
-    public ElevatorScreen(Game app) { super(app, 9); }
+    public ElevatorScreen(Game app) {
+        super(app, 9);
+    }
 
     @Override
     protected void onShowExtra() {
@@ -83,11 +86,15 @@ public final class ElevatorScreen extends BasePlayScreen {
     }
 
     private boolean isUnlocked(int lvl) {
-        if (lvl <= 1) return true;
+        if (lvl <= 1) {
+            return true;
+        }
         try {
-            return ManejoUsuarios.UsuarioActivo != null &&
-                   ManejoUsuarios.UsuarioActivo.getNivelCompletado(lvl - 1);
-        } catch (Exception ignored) { return false; }
+            return ManejoUsuarios.UsuarioActivo != null
+                    && ManejoUsuarios.UsuarioActivo.getNivelCompletado(lvl - 1);
+        } catch (Exception ignored) {
+            return false;
+        }
     }
 
     @Override
@@ -98,7 +105,9 @@ public final class ElevatorScreen extends BasePlayScreen {
             if (!movingPlayed) {
                 movingPlayed = true;
                 sMoving.play(1f);
-                if (bgMusic != null) bgMusic.pause();
+                if (bgMusic != null) {
+                    bgMusic.pause();
+                }
                 directionQueue.clear();
                 heldDirection = null;
                 moveRequested = false;
@@ -122,12 +131,14 @@ public final class ElevatorScreen extends BasePlayScreen {
         }
 
         if (selecting && input.isKeyJustPressed(Keys.ESCAPE)) {
-            selecting = false; // cerrar panel
+            selecting = false;
             return;
         }
 
         super.onUpdate(delta);
-        if (paused) return;
+        if (paused) {
+            return;
+        }
 
         // detectar si estamos frente a los botones del elevador
         nearButtons = false;
@@ -144,10 +155,12 @@ public final class ElevatorScreen extends BasePlayScreen {
                     }
                 }
             }
-            if (nearButtons) break;
+            if (nearButtons) {
+                break;
+            }
         }
 
-        // abrir selección SOLO si estamos frente a botones y presionamos ENTER
+        // abrir selección
         if (!selecting && nearButtons && Gdx.input.isKeyJustPressed(Keys.ENTER)) {
             selecting = true;
             selectedIndex = 0;
@@ -156,7 +169,9 @@ public final class ElevatorScreen extends BasePlayScreen {
 
         if (selecting) {
             if (ignoreEnter) {
-                if (!input.isKeyPressed(Keys.ENTER)) ignoreEnter = false;
+                if (!input.isKeyPressed(Keys.ENTER)) {
+                    ignoreEnter = false;
+                }
                 return;
             }
             if (input.isKeyJustPressed(Keys.UP)) {
@@ -165,7 +180,9 @@ public final class ElevatorScreen extends BasePlayScreen {
                 selectedIndex = (selectedIndex + 1) % levelList.length;
             } else if (input.isKeyJustPressed(Keys.ENTER)) {
                 int levelId = levelList[selectedIndex];
-                if (!isUnlocked(levelId)) return; // bloqueado: no entrar
+                if (!isUnlocked(levelId)) {
+                    return;
+                }
                 pendingLevel = levelId;
                 selecting = false;
                 transitioning = true;
@@ -178,7 +195,9 @@ public final class ElevatorScreen extends BasePlayScreen {
 
     @Override
     protected GameLogic.Directions readHeldDirection() {
-        if (selecting || transitioning) return null;
+        if (selecting || transitioning) {
+            return null;
+        }
         return super.readHeldDirection();
     }
 
@@ -242,33 +261,29 @@ public final class ElevatorScreen extends BasePlayScreen {
             batch.setColor(Color.BLACK);
             batch.draw(blackTexture, 0, 0, GameConfig.PX_WIDTH, GameConfig.PX_HEIGHT);
 
-            // “puertas” que se van cerrando
+            // puertas
             batch.setColor(Color.DARK_GRAY);
             batch.draw(blackTexture, 0, 0, halfW - doorOffset, GameConfig.PX_HEIGHT);
             batch.draw(blackTexture, halfW + doorOffset, 0, halfW - doorOffset, GameConfig.PX_HEIGHT);
             batch.setColor(Color.WHITE);
 
             // Texto central: "Entrando al Nivel N"
-            String msg = "Entrando al Nivel " + pendingLevel;
+            String msg = Lang.elevatorEnteringLevel() + " " + pendingLevel;
             float prevScaleX = font.getData().scaleX;
             float prevScaleY = font.getData().scaleY;
 
-            // Escala grande y blanca con leve sombra
             font.getData().setScale(2.0f);
             glyph.setText(font, msg);
 
-            float cx = (GameConfig.PX_WIDTH  - glyph.width)  * 0.5f;
+            float cx = (GameConfig.PX_WIDTH - glyph.width) * 0.5f;
             float cy = (GameConfig.PX_HEIGHT + glyph.height) * 0.5f;
 
-            // sombra suave
             font.setColor(new Color(0, 0, 0, 0.55f));
             font.draw(batch, msg, cx + 2f, cy - 2f);
 
-            // texto principal
             font.setColor(Color.WHITE);
             font.draw(batch, msg, cx, cy);
 
-            // restaurar estado de fuente
             font.getData().setScale(prevScaleX, prevScaleY);
             font.setColor(Color.WHITE);
             return;
@@ -277,7 +292,7 @@ public final class ElevatorScreen extends BasePlayScreen {
         if (!selecting) {
             if (nearButtons) {
                 font.setColor(Color.WHITE);
-                font.draw(batch, "ENTER: Seleccionar nivel", 10f, 52f);
+                font.draw(batch, Lang.elevatorHintOpen(), 10f, 52f);
                 font.setColor(Color.WHITE);
             }
             return;
@@ -292,13 +307,13 @@ public final class ElevatorScreen extends BasePlayScreen {
 
         batch.setColor(0f, 0f, 0f, 0.55f);
         batch.draw(blackTexture, PANEL_X - PANEL_PADDING_H, panelYBottom,
-                   panelW + PANEL_PADDING_H * 2f, panelH);
+                panelW + PANEL_PADDING_H * 2f, panelH);
         batch.setColor(Color.WHITE);
 
         // Título
         Color old = font.getColor();
         font.setColor(COLOR_TITLE);
-        font.draw(batch, "Selecciona nivel (ESC para salir)", PANEL_X, TITLE_Y);
+        font.draw(batch, Lang.elevatorSelectTitle(), PANEL_X, TITLE_Y);
         font.setColor(old);
 
         // Lista
@@ -311,7 +326,7 @@ public final class ElevatorScreen extends BasePlayScreen {
             boolean unlocked = isUnlocked(lvl);
 
             String prefix = (i == selectedIndex) ? ">" : " ";
-            String label = prefix + " Nivel " + lvl;
+            String label = prefix + " " + Lang.elevatorLevel() + " " + lvl;
             glyph.setText(font, label);
 
             float iconX = PANEL_X + glyph.width + ICON_GAP_X;
@@ -346,9 +361,17 @@ public final class ElevatorScreen extends BasePlayScreen {
         elevatorButtons.dispose();
         blackTexture.dispose();
         pixmap.dispose();
-        if (sMoving != null) sMoving.dispose();
-        if (sFinished != null) sFinished.dispose();
-        if (texOk != null) texOk.dispose();
-        if (texLock != null) texLock.dispose();
+        if (sMoving != null) {
+            sMoving.dispose();
+        }
+        if (sFinished != null) {
+            sFinished.dispose();
+        }
+        if (texOk != null) {
+            texOk.dispose();
+        }
+        if (texLock != null) {
+            texLock.dispose();
+        }
     }
 }

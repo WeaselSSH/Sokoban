@@ -16,6 +16,7 @@ public final class Lang {
         return current;
     }
 
+    // === MENU / GENERALES ===
     public static String gameTitle() {
         return "SOKOBAN";
     }
@@ -48,15 +49,16 @@ public final class Lang {
         return (current == 2) ? "Guest" : "Invitado";
     }
 
+    // === TUTORIAL GATE ===
     public static String mustDoTutorialTitle() {
         return "Tutorial";
     }
 
     public static String mustDoTutorialBody() {
-        return (current == 2) ? "You will start with the tutorial."
-                : "Comenzaras con el tutorial.";
+        return (current == 2) ? "You will start with the tutorial." : "Comenzaras con el tutorial.";
     }
 
+    // === LOGIN ===
     public static String loginScreenTitle() {
         return (current == 2) ? "SIGN IN" : "INICIO DE SESION";
     }
@@ -129,6 +131,7 @@ public final class Lang {
         return (current == 2) ? "User created" : "Usuario creado";
     }
 
+    // === CONFIG ===
     public static String cfgControls() {
         return (current == 2) ? "Controls" : "Controles";
     }
@@ -179,8 +182,8 @@ public final class Lang {
 
     public static String cfgHintPressKey() {
         return (current == 2)
-                ? "Click a button and press a key  ·  ESC cancels"
-                : "Clic en un botón y presiona una tecla  ·  ESC cancela";
+                ? "Click a button and press a key · ESC cancels"
+                : "Clic en un botón y presiona una tecla · ESC cancela";
     }
 
     public static String pressAKey() {
@@ -199,6 +202,7 @@ public final class Lang {
         return "Ingles";
     }
 
+    // === HUD / GAME ===
     public static String hudLevel() {
         return (current == 2) ? "Level" : "Nivel";
     }
@@ -217,5 +221,110 @@ public final class Lang {
 
     public static String hudControls() {
         return (current == 2) ? "Controls" : "Controles";
+    }
+
+    // === VICTORY ===
+    public static String victoryTutorial() {
+        return (current == 2) ? "Congrats on completing the tutorial" : "Felicidades por pasarte el tutorial";
+    }
+
+    public static String victoryGame() {
+        return (current == 2) ? "CONGRATULATIONS! YOU BEAT THE GAME!" : "FELICIDADES POR PASARTE EL JUEGO!";
+    }
+
+    public static String victoryThanks() {
+        return (current == 2) ? "THANKS FOR PLAYING!" : "GRACIAS POR JUGARLO!";
+    }
+
+    public static String victoryLevelCompleted() {
+        return (current == 2) ? "Level completed" : "Nivel completado";
+    }
+
+    public static String victoryHintBack() {
+        return (current == 2) ? "[ESC] Back to selector" : "[ESC] Volver al selector";
+    }
+
+    public static String victoryHintNextBack() {
+        return (current == 2) ? "[ENTER] Next level     [ESC] Back to selector"
+                : "[ENTER] Siguiente nivel     [ESC] Volver al selector";
+    }
+
+    // === ELEVATOR ===
+    public static String elevatorEnteringLevel() {
+        return (current == 2) ? "Entering Level" : "Entrando al Nivel";
+    }
+
+    public static String elevatorHintOpen() {
+        return (current == 2) ? "ENTER: Select level" : "ENTER: Seleccionar nivel";
+    }
+
+    public static String elevatorSelectTitle() {
+        return (current == 2) ? "Select level (ESC to exit)" : "Selecciona nivel (ESC para salir)";
+    }
+
+    public static String elevatorLevel() {
+        return (current == 2) ? "Level" : "Nivel";
+    }
+
+    // === HISTORIAL ===
+    public static String historyTitle() {
+        return (current == 2) ? "Match History" : "Historial de Partidas";
+    }
+
+    public static String historyEmpty() {
+        return (current == 2) ? "No matches recorded yet" : "Aun no hay partidas registradas";
+    }
+
+    public static String historyDate() {
+        return (current == 2) ? "Date" : "Fecha";
+    }
+
+    public static String historyLevel() {
+        return (current == 2) ? "Level" : "Nivel";
+    }
+
+    public static String historyTime() {
+        return (current == 2) ? "Time" : "Tiempo";
+    }
+
+    public static String historyAttempts() {
+        return (current == 2) ? "Attempts" : "Intentos";
+    }
+
+    public static String historyAchievements() {
+        return (current == 2) ? "Achievements" : "Logros";
+    }
+
+    public static String backToMenu() {
+        return (current == 2) ? "Back" : "Volver";
+    }
+
+    // === BASE PLAY (PAUSA / LOGS) ===
+    public static String pauseTitle() {
+        return (current == 2) ? "GAME PAUSED" : "JUEGO PAUSADO";
+    }
+
+    public static String pauseResume(String keyLabel) {
+        return (current == 2) ? keyLabel + ": Resume" : keyLabel + ": Reanudar";
+    }
+
+    public static String exitGame() {
+        return (current == 2) ? "Exit Game" : "Salir del Juego";
+    }
+
+    public static String historyTryAgain() {
+        return (current == 2) ? "Nice try, keep improving" : "Buen intento, sigue mejorando";
+    }
+
+    public static String logCompletedLevel() {
+        return (current == 2) ? "You completed the level" : "Haz completado el nivel";
+    }
+
+    public static String logNewBestSteps() {
+        return (current == 2) ? "New record for steps" : "Nuevo récord de pasos";
+    }
+
+    public static String logNewBestTime() {
+        return (current == 2) ? "New record for time" : "Nuevo récord de tiempo";
     }
 }

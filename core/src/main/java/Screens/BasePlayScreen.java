@@ -5,6 +5,7 @@ import GameLogic.GameConfig;
 import GameLogic.MovementThread;
 import GameLogic.Player;
 import GameLogic.SokobanGame;
+import GameLogic.Lang;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -95,20 +96,18 @@ public abstract class BasePlayScreen implements Screen {
 
     private Texture dimTexture, btnTexture;
 
-    /** Cronómetro visible / tiempo de la partida actual. Se PAUSA correctamente. */
     protected float timeChronometer = 0f;
 
-    /** Tiempo de sesión por nivel (acumulado para promedios). Se PAUSA correctamente. */
     protected float levelSessionTime = 0f;
     private boolean levelSessionTimeSubmitted = false;
 
     protected int prevPushes;
 
-    private long runStartMillis = 0L; // solo para fecha
+    private long runStartMillis = 0L;
     private String startDateStr = null;
     private int restartCount = 0;
     private boolean historyRecorded = false;
-    
+
     private VictoryPhase victoryPhase = VictoryPhase.NONE;
     private float victoryTimer = 0f;
     private Music victoryMusic = null;
@@ -180,15 +179,15 @@ public abstract class BasePlayScreen implements Screen {
         pausePanel = new Table();
         pausePanel.pad(24f);
         pausePanel.defaults().pad(8f);
-        pausePanel.add(new Label("JUEGO PAUSADO", pauseStyle)).row();
-        pausePanel.add(new Label(sPause + ": Reanudar", pauseStyle)).row();
+        pausePanel.add(new Label(Lang.pauseTitle(), pauseStyle)).row();
+        pausePanel.add(new Label(Lang.pauseResume(sPause), pauseStyle)).row();
 
         TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle();
         buttonStyle.font = font;
         buttonStyle.fontColor = Color.WHITE;
         buttonStyle.downFontColor = Color.GRAY;
 
-        TextButton exitButton = new TextButton("Salir del Juego", buttonStyle);
+        TextButton exitButton = new TextButton(Lang.exitGame(), buttonStyle);
         exitButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -202,12 +201,11 @@ public abstract class BasePlayScreen implements Screen {
         pauseStage.addActor(pauseRoot);
         pauseRoot.setVisible(false);
 
-        // === Tiempo de la RUN ===
         historyRecorded = false;
-        runStartMillis = System.currentTimeMillis();     // solo para FECHA
-        startDateStr = formatDate(runStartMillis);       // "yyyy/MM/dd HH-mm-ss" (tu formato)
-        restartCount = 1;                                // intentos inicia en 1
-        timeChronometer = 0f;                            // resetea cronómetro al iniciar run
+        runStartMillis = System.currentTimeMillis();
+        startDateStr = formatDate(runStartMillis);
+        restartCount = 1;
+        timeChronometer = 0f;
 
         onShowExtra();
     }
@@ -240,18 +238,19 @@ public abstract class BasePlayScreen implements Screen {
     }
 
     @Override
-    public void pause() { }
+    public void pause() {
+    }
 
     @Override
-    public void resume() { }
+    public void resume() {
+    }
 
     @Override
     public void hide() {
         submitLevelSessionTime();
         if (isGameplayLevel() && !historyRecorded) {
-            // 👉 Usa el cronómetro que respeta la pausa
             int elapsedSec = (int) timeChronometer;
-            String logros = "Buen intento, sigue mejorando";
+            String logros = Lang.historyTryAgain();
             savePartida(startDateStr, restartCount, logros, elapsedSec, level);
             historyRecorded = true;
         }
@@ -260,9 +259,14 @@ public abstract class BasePlayScreen implements Screen {
     @Override
     public void dispose() {
         try {
-            if (movementThreadLogic != null) movementThreadLogic.stop();
-            if (movementThread != null) movementThread.interrupt();
-        } catch (Exception ignored) { }
+            if (movementThreadLogic != null) {
+                movementThreadLogic.stop();
+            }
+            if (movementThread != null) {
+                movementThread.interrupt();
+            }
+        } catch (Exception ignored) {
+        }
         if (victoryMusic != null) {
             victoryMusic.stop();
             AudioBus.unregisterMusic(victoryMusic);
@@ -276,8 +280,11 @@ public abstract class BasePlayScreen implements Screen {
     }
 
     protected abstract void onShowExtra();
+
     protected abstract void onDrawMap();
+
     protected abstract void onDrawHUD();
+
     protected abstract void onDisposeExtra();
 
     protected void onUpdate(float delta) {
@@ -286,33 +293,46 @@ public abstract class BasePlayScreen implements Screen {
             if (paused) {
                 directionQueue.clear();
                 pauseRoot.setVisible(true);
-                if (bgMusic != null) bgMusic.pause();
+                if (bgMusic != null) {
+                    bgMusic.pause();
+                }
                 Gdx.input.setInputProcessor(pauseStage);
             } else {
                 pauseRoot.setVisible(false);
-                if (bgMusic != null) bgMusic.play();
+                if (bgMusic != null) {
+                    bgMusic.play();
+                }
                 Gdx.input.setInputProcessor(null);
             }
         }
 
-        if (paused) return;
+        if (paused) {
+            return;
+        }
 
         if (victoryPhase == VictoryPhase.FREEZE) {
             victoryTimer += delta;
             if (victoryTimer >= 2.0f) {
                 victoryPhase = VictoryPhase.PLAYING;
                 victoryTimer = 0f;
-                if (victoryMusic != null) victoryMusic.play();
+                if (victoryMusic != null) {
+                    victoryMusic.play();
+                }
             }
             return;
         }
-        if (victoryPhase == VictoryPhase.PLAYING) return;
+        if (victoryPhase == VictoryPhase.PLAYING) {
+            return;
+        }
 
-        // ✅ Estos dos se incrementan solo cuando NO hay pausa
         timeChronometer += delta;
-        if (isGameplayLevel()) levelSessionTime += delta;
+        if (isGameplayLevel()) {
+            levelSessionTime += delta;
+        }
 
-        if (!tweenActive) handleHeldInput(delta);
+        if (!tweenActive) {
+            handleHeldInput(delta);
+        }
         detectAndAnimateMovement();
 
         if (moveRequested && !tweenActive && directionQueue.isEmpty()) {
@@ -324,15 +344,20 @@ public abstract class BasePlayScreen implements Screen {
     }
 
     private void handleHeldInput(float delta) {
-        if (tweenActive || moveRequested) return;
+        if (tweenActive || moveRequested) {
+            return;
+        }
 
         Directions currentHeld = readHeldDirection();
         if (currentHeld == null) {
-            heldDirection = null; holdTimer = 0f; return;
+            heldDirection = null;
+            holdTimer = 0f;
+            return;
         }
 
         if (heldDirection == null || currentHeld != heldDirection) {
-            heldDirection = currentHeld; holdTimer = 0f;
+            heldDirection = currentHeld;
+            holdTimer = 0f;
             enqueueDirection(heldDirection);
             facing = heldDirection;
             return;
@@ -350,8 +375,12 @@ public abstract class BasePlayScreen implements Screen {
     }
 
     private void enqueueDirection(Directions dir) {
-        if (tweenActive || moveRequested) return;
-        if (directionQueue.offer(dir)) moveRequested = true;
+        if (tweenActive || moveRequested) {
+            return;
+        }
+        if (directionQueue.offer(dir)) {
+            moveRequested = true;
+        }
     }
 
     private void detectAndAnimateMovement() {
@@ -386,9 +415,11 @@ public abstract class BasePlayScreen implements Screen {
 
             game.recomputeVictory();
             if (game.isVictory()) {
-                if (bgMusic != null) bgMusic.stop();
+                if (bgMusic != null) {
+                    bgMusic.stop();
+                }
 
-                victorySeconds = (int) timeChronometer; // ya respeta pausa
+                victorySeconds = (int) timeChronometer;
                 victoryMoves = p.getMoveCount();
                 victoryPushes = p.getPushCount();
 
@@ -404,24 +435,36 @@ public abstract class BasePlayScreen implements Screen {
                         Usuario u = ManejoUsuarios.UsuarioActivo;
                         if (u != null) {
                             int bestSteps = u.getMayorPuntuacion(level);
-                            if (bestSteps == 0 || victoryMoves < bestSteps) newBestSteps = true;
+                            if (bestSteps == 0 || victoryMoves < bestSteps) {
+                                newBestSteps = true;
+                            }
 
                             int bestTime = u.getMejorTiempoPorNivel(level);
-                            if (bestTime == 0 || victorySeconds < bestTime) newBestTime = true;
+                            if (bestTime == 0 || victorySeconds < bestTime) {
+                                newBestTime = true;
+                            }
 
                             u.setNivelCompletado(level, true);
-                            if (newBestSteps) u.setMayorPuntuacion(level, victoryMoves);
-                            if (newBestTime)  u.setMejorTiempoPorNivel(level, victorySeconds);
+                            if (newBestSteps) {
+                                u.setMayorPuntuacion(level, victoryMoves);
+                            }
+                            if (newBestTime) {
+                                u.setMejorTiempoPorNivel(level, victorySeconds);
+                            }
                         }
                     }
-                } catch (Exception ignored) { }
+                } catch (Exception ignored) {
+                }
 
                 if (isGameplayLevel() && !historyRecorded) {
-                    // 👉 Guarda el tiempo real de juego (sin pausas)
                     int elapsedSecReal = (int) timeChronometer;
-                    StringBuilder lg = new StringBuilder("Haz completado el nivel");
-                    if (newBestSteps) lg.append("\nNuevo récord de pasos");
-                    if (newBestTime)  lg.append("\nNuevo récord de tiempo");
+                    StringBuilder lg = new StringBuilder(Lang.logCompletedLevel());
+                    if (newBestSteps) {
+                        lg.append("\n").append(Lang.logNewBestSteps());
+                    }
+                    if (newBestTime) {
+                        lg.append("\n").append(Lang.logNewBestTime());
+                    }
                     savePartida(startDateStr, restartCount, lg.toString(), elapsedSecReal, level);
                     historyRecorded = true;
                 }
@@ -454,7 +497,8 @@ public abstract class BasePlayScreen implements Screen {
                 return;
             }
 
-            prevX = cx; prevY = cy;
+            prevX = cx;
+            prevY = cy;
             prevPushes = p.getPushCount();
             moveRequested = false;
         }
@@ -466,7 +510,9 @@ public abstract class BasePlayScreen implements Screen {
             levelSessionTimeSubmitted = true;
             return;
         }
-        if (levelSessionTimeSubmitted) return;
+        if (levelSessionTimeSubmitted) {
+            return;
+        }
 
         try {
             Usuario u = ManejoUsuarios.UsuarioActivo;
@@ -480,7 +526,8 @@ public abstract class BasePlayScreen implements Screen {
                 u.setPartidasTotales(u.getPartidasTotales() + 1);
                 u.recalcularTiempoPromedioNivel(level);
             }
-        } catch (Exception ignored) { }
+        } catch (Exception ignored) {
+        }
 
         levelSessionTime = 0f;
         levelSessionTimeSubmitted = true;
@@ -549,10 +596,18 @@ public abstract class BasePlayScreen implements Screen {
         wallTexture.dispose();
         btnTexture.dispose();
 
-        for (Texture t : downFrames) t.dispose();
-        for (Texture t : upFrames) t.dispose();
-        for (Texture t : leftFrames) t.dispose();
-        for (Texture t : rightFrames) t.dispose();
+        for (Texture t : downFrames) {
+            t.dispose();
+        }
+        for (Texture t : upFrames) {
+            t.dispose();
+        }
+        for (Texture t : leftFrames) {
+            t.dispose();
+        }
+        for (Texture t : rightFrames) {
+            t.dispose();
+        }
 
         stepSound.dispose();
         resetLevelSound.dispose();
@@ -570,9 +625,12 @@ public abstract class BasePlayScreen implements Screen {
             Usuario usuario = ManejoUsuarios.UsuarioActivo;
             if (usuario != null && usuario.configuracion != null) {
                 Integer v = usuario.configuracion.get(name);
-                if (v != null && v != 0) return v;
+                if (v != null && v != 0) {
+                    return v;
+                }
             }
-        } catch (Exception ignored) { }
+        } catch (Exception ignored) {
+        }
         return def;
     }
 
@@ -582,10 +640,18 @@ public abstract class BasePlayScreen implements Screen {
         kLeft = getCfgKey("MoverIzq", Input.Keys.LEFT);
         kRight = getCfgKey("MoverDer", Input.Keys.RIGHT);
 
-        if (Gdx.input.isKeyPressed(kUp)) return Directions.UP;
-        if (Gdx.input.isKeyPressed(kDown)) return Directions.DOWN;
-        if (Gdx.input.isKeyPressed(kLeft)) return Directions.LEFT;
-        if (Gdx.input.isKeyPressed(kRight)) return Directions.RIGHT;
+        if (Gdx.input.isKeyPressed(kUp)) {
+            return Directions.UP;
+        }
+        if (Gdx.input.isKeyPressed(kDown)) {
+            return Directions.DOWN;
+        }
+        if (Gdx.input.isKeyPressed(kLeft)) {
+            return Directions.LEFT;
+        }
+        if (Gdx.input.isKeyPressed(kRight)) {
+            return Directions.RIGHT;
+        }
         return null;
     }
 
@@ -603,7 +669,9 @@ public abstract class BasePlayScreen implements Screen {
     }
 
     protected void advanceTween(float delta) {
-        if (!tweenActive) return;
+        if (!tweenActive) {
+            return;
+        }
 
         tweenTime += delta;
         float t = tweenTime / tweenDuration;
@@ -625,22 +693,34 @@ public abstract class BasePlayScreen implements Screen {
     protected Texture pickFrameForFacing() {
         Texture[] arr;
         switch (facing) {
-            case UP:    arr = upFrames;    break;
-            case DOWN:  arr = downFrames;  break;
-            case LEFT:  arr = leftFrames;  break;
-            case RIGHT: arr = rightFrames; break;
-            default:    arr = downFrames;
+            case UP:
+                arr = upFrames;
+                break;
+            case DOWN:
+                arr = downFrames;
+                break;
+            case LEFT:
+                arr = leftFrames;
+                break;
+            case RIGHT:
+                arr = rightFrames;
+                break;
+            default:
+                arr = downFrames;
         }
-        if (!tweenActive) return arr[1];
+        if (!tweenActive) {
+            return arr[1];
+        }
         float t = tweenTime / tweenDuration;
         int idx = (int) (t * 3.0f);
-        if (idx > 2) idx = 2;
+        if (idx > 2) {
+            idx = 2;
+        }
         return arr[idx];
     }
 
     protected void notifyRestart() {
         restartCount++;
-        // 👇 ya NO tocamos timeChronometer aquí: el tiempo debe seguir contando
     }
 
     private String formatDate(long millis) {
@@ -654,10 +734,15 @@ public abstract class BasePlayScreen implements Screen {
     private void savePartida(String fechaStr, int intentos, String logros, int tiempoSeg, int nivel) {
         try {
             Usuario u = ManejoUsuarios.UsuarioActivo;
-            if (u == null) return;
-            if (u.historial == null) return;
+            if (u == null) {
+                return;
+            }
+            if (u.historial == null) {
+                return;
+            }
             Partida p = new Partida(fechaStr, intentos, logros, tiempoSeg, nivel);
             u.historial.add(p);
-        } catch (Exception ignored) { }
+        } catch (Exception ignored) {
+        }
     }
 }

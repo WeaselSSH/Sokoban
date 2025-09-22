@@ -5,6 +5,7 @@ import static com.badlogic.gdx.Input.Keys.ENTER;
 import static com.badlogic.gdx.Input.Keys.ESCAPE;
 
 import GameLogic.GameConfig;
+import GameLogic.Lang;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
@@ -112,25 +113,29 @@ public final class VictoryScreen implements Screen {
 
         font.setColor(Color.valueOf("E6DFC9"));
         if (level == 0) {
-            font.draw(batch, "Felicidades por pasarte el tutorial", x, y);
+            font.draw(batch, Lang.victoryTutorial(), x, y);
         } else if (isLast) {
-            font.draw(batch, "FELICIDADES POR PASARTE EL JUEGO!", x, y);
+            font.draw(batch, Lang.victoryGame(), x, y);
             y -= 28f;
-            font.draw(batch, "GRACIAS POR JUGARLO!", x, y);
+            font.draw(batch, Lang.victoryThanks(), x, y);
         } else {
-            font.draw(batch, "Nivel " + level + " completado", x, y);
+            font.draw(batch, Lang.victoryLevelCompleted() + " " + level, x, y);
         }
         y -= 32f;
 
         font.setColor(Color.WHITE);
-        font.draw(batch, "Tiempo: " + timeStr + "   Pasos: " + moves + "   Empujes: " + pushes, x, y);
+        font.draw(batch,
+                Lang.hudTime() + ": " + timeStr
+                + "   " + Lang.hudSteps() + ": " + moves
+                + "   " + Lang.hudPushes() + ": " + pushes,
+                x, y);
         y -= 40f;
 
         font.setColor(Color.valueOf("FFE27A"));
         if (isLast) {
-            font.draw(batch, "[ESC] Volver al selector", x, y);
+            font.draw(batch, Lang.victoryHintBack(), x, y);
         } else {
-            font.draw(batch, "[ENTER] Siguiente nivel     [ESC] Volver al selector", x, y);
+            font.draw(batch, Lang.victoryHintNextBack(), x, y);
         }
         font.setColor(Color.WHITE);
     }

@@ -6,6 +6,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image;
 
 import static com.badlogic.gdx.scenes.scene2d.actions.Actions.*;
 
+import GameLogic.Lang;
+
 public class TutorialScreen extends BaseScreen {
 
     private final Game game;
@@ -24,10 +26,11 @@ public class TutorialScreen extends BaseScreen {
 
     @Override
     protected void onShow() {
+        final String baseName = (Lang.get() == 2) ? "instruction_" : "instruccion_";
         diapositivas = new Texture[]{
-            new Texture("ui/instruccion_1.png"),
-            new Texture("ui/instruccion_2.png"),
-            new Texture("ui/instruccion_3.png")
+            new Texture("ui/" + baseName + "1.png"),
+            new Texture("ui/" + baseName + "2.png"),
+            new Texture("ui/" + baseName + "3.png")
         };
 
         float fadeTime = 2f;
@@ -41,8 +44,7 @@ public class TutorialScreen extends BaseScreen {
             img.setFillParent(true);
             stage.addActor(img);
 
-            img.addAction(
-                sequence(
+            img.addAction(sequence(
                     delay(delay),
                     fadeIn(fadeTime),
                     delay(showTime),
@@ -52,8 +54,7 @@ public class TutorialScreen extends BaseScreen {
                             game.setScreen(nextScreenAfter);
                         }
                     })
-                )
-            );
+            ));
 
             delay += fadeTime + showTime + fadeTime;
         }
@@ -63,7 +64,9 @@ public class TutorialScreen extends BaseScreen {
     public void dispose() {
         super.dispose();
         if (diapositivas != null) {
-            for (Texture t : diapositivas) t.dispose();
+            for (Texture t : diapositivas) {
+                t.dispose();
+            }
         }
     }
 }
