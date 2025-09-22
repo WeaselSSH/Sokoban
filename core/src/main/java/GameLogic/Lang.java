@@ -6,11 +6,11 @@ public final class Lang {
     private static int current = 1;
 
     public static String errUserExists() {
-       return (current==2) ? "User already in use":"Usuario ya en uso";
+        return (current == 2) ? "User already in use" : "Usuario ya en uso";
     }
 
     public static String errPasswordMismatch() {
-       return (current==2)? "Password does not match":"La contrasena no coincide";
+        return (current == 2) ? "Password does not match" : "La contrasena no coincide";
     }
 
     private Lang() {
@@ -327,4 +327,113 @@ public final class Lang {
     public static String logNewBestTime() {
         return (current == 2) ? "New record for time" : "Nuevo record de tiempo";
     }
+
+    // === MI PERFIL ===
+    public static String profileAccountDataTitle() {
+        return (current == 2) ? "Account data" : "Datos de la cuenta";
+    }
+
+    public static String profileStatsTitle() {
+        return (current == 2) ? "My Stats" : "Mis Estadisticas";
+    }
+
+    public static String profileFullName() {
+        return (current == 2) ? "Full name" : "Nombre completo";
+    }
+
+    public static String profileUser() {
+        return (current == 2) ? "User" : "Usuario";
+    }
+
+    public static String profilePassword() {
+        return (current == 2) ? "Password" : "Contrasena";
+    }
+
+    public static String profileTotalPlayTime() {
+        return (current == 2) ? "Total play time" : "Tiempo total de juego";
+    }
+
+    public static String profileTotalMatches() {
+        return (current == 2) ? "Total matches played" : "Total partidas jugadas";
+    }
+
+    public static String profileCompleted() {
+        return (current == 2) ? "Completed" : "Completado";
+    }
+
+    public static String profileNotCompleted() {
+        return (current == 2) ? "Not completed" : "Sin completar";
+    }
+
+// Tabla de estadisticas
+    public static String profileLevel() {
+        return (current == 2) ? "Level" : "Nivel";
+    }
+
+    public static String profileStatus() {
+        return (current == 2) ? "Status" : "Estado";
+    }
+
+    public static String profileMatches() {
+        return (current == 2) ? "Matches" : "Partidas";
+    }
+
+    public static String profileAvgTime() {
+        return (current == 2) ? "Average time" : "Tiempo promedio";
+    }
+
+    public static String profileRecordVictory() {
+        return (current == 2) ? "Record victory" : "Victoria record";
+    }
+
+    public static String profileSteps() {
+        return (current == 2) ? "Steps" : "Pasos";
+    }
+
+    public static String profilePushes() {
+        return (current == 2) ? "Pushes" : "Empujes";
+    }
+
+    public static String profileTime() {
+        return (current == 2) ? "Time" : "Tiempo";
+    }
+
+    public static String profileEditUserTitle() {
+        return (current == 2) ? "Edit user" : "Editar usuario";
+    }
+
+    public static String profileEditUserPrompt() {
+        return (current == 2) ? "New user :" : "Nuevo usuario :";
+    }
+
+    public static String profileEditPassTitle() {
+        return (current == 2) ? "Edit password" : "Editar contrasena";
+    }
+
+    public static String profileEditPassNew() {
+        return (current == 2) ? "New password :" : "Nueva contrasena :";
+    }
+
+    public static String profileEditPassConfirm() {
+        return (current == 2) ? "Confirm:" : "Confirmar:";
+    }
+
+// Errores especificos
+    public static String errCommaNotAllowed() {
+        return (current == 2) ? "Comma (,) is not allowed" : "No se permite la coma (,)";
+    }
+
+    public static String errEmptyUser() {
+        return (current == 2) ? "Empty user" : "Usuario vacio";
+    }
+
+    public static String errPasswordRequirements() {
+        return (current == 2) ? "Password does not meet requirements" : "La contrasena no cumple los requisitos.";
+    }
+
+// Extra (opcional) para selector de avatar
+    public static String profileSelectAvatarTitle() {
+        return (current == 2) ? "Select avatar image" : "Seleccionar imagen de avatar";
+    }
+
 }

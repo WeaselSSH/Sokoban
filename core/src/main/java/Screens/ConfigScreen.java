@@ -9,7 +9,6 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -27,17 +26,17 @@ public class ConfigScreen extends BaseScreen {
     private final Game game;
     private Skin skin;
 
-    private KeyBinder kbUp, kbDown, kbLeft, kbRight, kbReiniciar;
-    private Slider sliderVolumen;
-    private Label lblVolumenValor;
-    private SelectBox<String> sbIdioma;
+    private KeyBinder keyBinderUp, keyBinderDown, keyBinderLeft, keyBinderRight, keyBinderRestart;
+    private Slider sliderVolume;
+    private Label labelVolumeValue;
+    private SelectBox<String> selectLanguage;
 
-    private TextButton btnGuardar, btnVolver;
+    private TextButton buttonSave, buttonBack;
 
-    private int volOriginal;
-    private int idiomaOriginal;
+    private int originalVolume;
+    private int originalLanguage;
 
-    private Texture gradientTex;
+    private Texture gradientTexture;
 
     private static final float CONTENT_MAX_WIDTH = 900f;
     private static final float TOP_OFFSET = 16f;
@@ -48,137 +47,135 @@ public class ConfigScreen extends BaseScreen {
 
     @Override
     protected void onShow() {
-        int idioma = (ManejoUsuarios.UsuarioActivo != null) ? ManejoUsuarios.UsuarioActivo.getIdioma() : 1;
-        Lang.init(idioma);
+        int language = (ManejoUsuarios.UsuarioActivo != null) ? ManejoUsuarios.UsuarioActivo.getIdioma() : 1;
+        Lang.init(language);
 
         skin = buildSkin();
 
-        BitmapFont f = skin.getFont("base-font");
-        f.getData().setScale(1.15f);
+        BitmapFont baseFont = skin.getFont("base-font");
+        baseFont.getData().setScale(1.15f);
 
-        int kUp = getCfg("MoverArriba", Input.Keys.UP);
-        int kDown = getCfg("MoverAbajo", Input.Keys.DOWN);
-        int kLeft = getCfg("MoverIzq", Input.Keys.LEFT);
-        int kRight = getCfg("MoverDer", Input.Keys.RIGHT);
-        int kRei = getCfg("Reiniciar", Input.Keys.R);
+        int cfgUp = getCfg("MoverArriba", Input.Keys.UP);
+        int cfgDown = getCfg("MoverAbajo", Input.Keys.DOWN);
+        int cfgLeft = getCfg("MoverIzq", Input.Keys.LEFT);
+        int cfgRight = getCfg("MoverDer", Input.Keys.RIGHT);
+        int cfgRestart = getCfg("Reiniciar", Input.Keys.R);
 
-        Integer vVol = cfgAny("volumen", "Volumen");
-        volOriginal = vVol != null ? vVol : 70;
+        Integer savedVolume = cfgAny("volumen", "Volumen");
+        originalVolume = savedVolume != null ? savedVolume : 70;
 
-        Integer vId = cfgAny("idioma", "Idioma");
-        idiomaOriginal = vId != null ? vId : 1;
+        Integer savedLanguage = cfgAny("idioma", "Idioma");
+        originalLanguage = savedLanguage != null ? savedLanguage : 1;
 
-        gradientTex = makeVerticalGradient(16, 400,
+        gradientTexture = makeVerticalGradient(16, 400,
                 new Color(0.08f, 0.10f, 0.13f, 1f),
                 new Color(0.12f, 0.14f, 0.18f, 1f));
-        Image bg = new Image(new TextureRegionDrawable(new TextureRegion(gradientTex)));
-        bg.setFillParent(true);
-        bg.setScaling(Scaling.fill);
-        stage.addActor(bg);
+        Image gradientBackground = new Image(new TextureRegionDrawable(new TextureRegion(gradientTexture)));
+        gradientBackground.setFillParent(true);
+        gradientBackground.setScaling(Scaling.fill);
+        stage.addActor(gradientBackground);
 
-        kbUp = new KeyBinder(Lang.cfgUp(), "MoverArriba", kUp);
-        kbDown = new KeyBinder(Lang.cfgDown(), "MoverAbajo", kDown);
-        kbLeft = new KeyBinder(Lang.cfgLeft(), "MoverIzq", kLeft);
-        kbRight = new KeyBinder(Lang.cfgRight(), "MoverDer", kRight);
-        kbReiniciar = new KeyBinder(Lang.cfgRestart(), "Reiniciar", kRei);
+        keyBinderUp = new KeyBinder(Lang.cfgUp(), "MoverArriba", cfgUp);
+        keyBinderDown = new KeyBinder(Lang.cfgDown(), "MoverAbajo", cfgDown);
+        keyBinderLeft = new KeyBinder(Lang.cfgLeft(), "MoverIzq", cfgLeft);
+        keyBinderRight = new KeyBinder(Lang.cfgRight(), "MoverDer", cfgRight);
+        keyBinderRestart = new KeyBinder(Lang.cfgRestart(), "Reiniciar", cfgRestart);
 
-        Label lblVol = new Label(Lang.cfgVolume(), skin, "section");
-        lblVol.setFontScale(1.1f);
-        sliderVolumen = new Slider(0, 100, 1, false, skin, "thick");
-        sliderVolumen.setValue(volOriginal);
-        lblVolumenValor = new Label(volOriginal + "%", skin, "mono");
-        lblVolumenValor.setFontScale(1.05f);
+        Label labelVolumeTitle = new Label(Lang.cfgVolume(), skin, "section");
+        labelVolumeTitle.setFontScale(1.1f);
+        sliderVolume = new Slider(0, 100, 1, false, skin, "thick");
+        sliderVolume.setValue(originalVolume);
+        labelVolumeValue = new Label(originalVolume + "%", skin, "mono");
+        labelVolumeValue.setFontScale(1.05f);
 
-        sliderVolumen.addListener(new InputListener() {
+        sliderVolume.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                onVolChanged();
+                onVolumeChanged();
                 return true;
             }
 
             @Override
             public void touchDragged(InputEvent event, float x, float y, int pointer) {
-                onVolChanged();
+                onVolumeChanged();
             }
 
             @Override
             public void touchUp(InputEvent event, float x, float y, int pointer, int b) {
-                onVolChanged();
+                onVolumeChanged();
             }
         });
 
-        Label tituloIdioma = new Label(Lang.cfgLanguage(), skin, "section");
-        tituloIdioma.setFontScale(1.1f);
-        sbIdioma = new SelectBox<>(skin);
-        sbIdioma.setItems(Lang.langSpanish(), Lang.langEnglish());
-        sbIdioma.setSelected(idiomaOriginal == 2 ? Lang.langEnglish() : Lang.langSpanish());
-        sbIdioma.addListener(new ChangeListener() {
+        Label labelLanguageTitle = new Label(Lang.cfgLanguage(), skin, "section");
+        labelLanguageTitle.setFontScale(1.1f);
+        selectLanguage = new SelectBox<>(skin);
+        selectLanguage.setItems(Lang.langSpanish(), Lang.langEnglish());
+        selectLanguage.setSelected(originalLanguage == 2 ? Lang.langEnglish() : Lang.langSpanish());
+        selectLanguage.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                actualizarEstadoGuardar();
+                updateSaveEnabledState();
             }
         });
 
-        btnGuardar = new TextButton(Lang.saveChanges(), skin, "cta");
-        btnGuardar.getLabel().setFontScale(1.05f);
-        btnGuardar.setDisabled(true);
-        btnGuardar.addListener(new ClickListener() {
+        buttonSave = new TextButton(Lang.saveChanges(), skin, "cta");
+        buttonSave.getLabel().setFontScale(1.05f);
+        buttonSave.setDisabled(true);
+        buttonSave.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                if (btnGuardar.isDisabled()) {
+                if (buttonSave.isDisabled()) {
                     return;
                 }
 
-                putCfg("MoverArriba", kbUp.getActual());
-                putCfg("MoverAbajo", kbDown.getActual());
-                putCfg("MoverIzq", kbLeft.getActual());
-                putCfg("MoverDer", kbRight.getActual());
-                putCfg("Reiniciar", kbReiniciar.getActual());
+                putCfg("MoverArriba", keyBinderUp.getCurrentKeycode());
+                putCfg("MoverAbajo", keyBinderDown.getCurrentKeycode());
+                putCfg("MoverIzq", keyBinderLeft.getCurrentKeycode());
+                putCfg("MoverDer", keyBinderRight.getCurrentKeycode());
+                putCfg("Reiniciar", keyBinderRestart.getCurrentKeycode());
 
-                int nuevoVol = Math.round(sliderVolumen.getValue());
-                putCfgAny(nuevoVol, "volumen", "Volumen");
+                int newVolume = Math.round(sliderVolume.getValue());
+                putCfgAny(newVolume, "volumen", "Volumen");
 
-                int nuevoIdioma = sbIdioma.getSelected().equals(Lang.langEnglish()) ? 2 : 1;
-                putCfgAny(nuevoIdioma, "idioma", "Idioma");
+                int newLanguage = selectLanguage.getSelected().equals(Lang.langEnglish()) ? 2 : 1;
+                putCfgAny(newLanguage, "idioma", "Idioma");
                 try {
                     ArchivoGuardar.guardarConfiguracion();
                 } catch (Exception ignored) {
                 }
 
-                // Reaplica idioma si cambió
-                if (nuevoIdioma != idiomaOriginal) {
+                if (newLanguage != originalLanguage) {
                     if (ManejoUsuarios.UsuarioActivo != null) {
-                        ManejoUsuarios.UsuarioActivo.setIdioma(nuevoIdioma);
+                        ManejoUsuarios.UsuarioActivo.setIdioma(newLanguage);
                     }
-                    Lang.init(nuevoIdioma);
+                    Lang.init(newLanguage);
                 }
 
-                kbUp.confirmar();
-                kbDown.confirmar();
-                kbLeft.confirmar();
-                kbRight.confirmar();
-                kbReiniciar.confirmar();
-                volOriginal = nuevoVol;
-                idiomaOriginal = nuevoIdioma;
-                actualizarEstadoGuardar();
+                keyBinderUp.confirm();
+                keyBinderDown.confirm();
+                keyBinderLeft.confirm();
+                keyBinderRight.confirm();
+                keyBinderRestart.confirm();
+                originalVolume = newVolume;
+                originalLanguage = newLanguage;
+                updateSaveEnabledState();
 
-                Dialog d = new Dialog("", skin);
-                d.setModal(true);
-                d.getContentTable().pad(12f);
-                d.getContentTable().add(new Label(Lang.savedCheck(), skin, "dialog")).left();
-                d.button("OK", true);
-                d.show(stage);
+                Dialog confirmation = new Dialog("", skin);
+                confirmation.setModal(true);
+                confirmation.getContentTable().pad(12f);
+                confirmation.getContentTable().add(new Label(Lang.savedCheck(), skin, "dialog")).left();
+                confirmation.button("OK", true);
+                confirmation.show(stage);
 
-                // Recargar pantalla para reflejar textos nuevos si cambió idioma
-                if (nuevoIdioma != idioma) {
+                if (newLanguage != language) {
                     game.setScreen(new ConfigScreen(game));
                 }
             }
         });
 
-        btnVolver = new TextButton(Lang.back(), skin, "ghost");
-        btnVolver.getLabel().setFontScale(1.05f);
-        btnVolver.addListener(new ClickListener() {
+        buttonBack = new TextButton(Lang.back(), skin, "ghost");
+        buttonBack.getLabel().setFontScale(1.05f);
+        buttonBack.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 game.setScreen(new MenuScreen(game));
@@ -188,57 +185,58 @@ public class ConfigScreen extends BaseScreen {
         Table content = new Table();
         content.pad(20f, 24f, 20f, 24f);
 
-        // Tarjeta: CONTROLES
-        Table cardControles = makeCard();
-        Label secControles = new Label(Lang.cfgControls(), skin, "section");
-        secControles.setFontScale(1.12f);
-        cardControles.add(secControles).left().padBottom(8f).row();
-        Label hint = new Label(Lang.cfgHintPressKey(), skin, "hint");
-        cardControles.add(hint).left().padBottom(6f).row();
+        // Card: CONTROLS
+        Table cardControls = makeCard();
+        Label labelControlsTitle = new Label(Lang.cfgControls(), skin, "section");
+        labelControlsTitle.setFontScale(1.12f);
+        cardControls.add(labelControlsTitle).left().padBottom(8f).row();
+        Label labelHint = new Label(Lang.cfgHintPressKey(), skin, "hint");
+        cardControls.add(labelHint).left().padBottom(6f).row();
 
-        Table t = new Table();
-        t.defaults().pad(8f);
-        t.add(kbUp.lbl).left().padRight(12f).width(150f);
-        t.add(kbUp.btn).width(300f).height(40f).row();
-        t.add(kbDown.lbl).left().padRight(12f).width(150f);
-        t.add(kbDown.btn).width(300f).height(40f).row();
-        t.add(kbLeft.lbl).left().padRight(12f).width(150f);
-        t.add(kbLeft.btn).width(300f).height(40f).row();
-        t.add(kbRight.lbl).left().padRight(12f).width(150f);
-        t.add(kbRight.btn).width(300f).height(40f).row();
-        t.add(kbReiniciar.lbl).left().padRight(12f).width(150f);
-        t.add(kbReiniciar.btn).width(300f).height(40f).row();
-        cardControles.add(t).growX();
-        content.add(cardControles).growX().padBottom(14f).row();
+        Table controlsGrid = new Table();
+        controlsGrid.defaults().pad(8f);
+        controlsGrid.add(keyBinderUp.labelName).left().padRight(12f).width(150f);
+        controlsGrid.add(keyBinderUp.buttonKey).width(300f).height(40f).row();
+        controlsGrid.add(keyBinderDown.labelName).left().padRight(12f).width(150f);
+        controlsGrid.add(keyBinderDown.buttonKey).width(300f).height(40f).row();
+        controlsGrid.add(keyBinderLeft.labelName).left().padRight(12f).width(150f);
+        controlsGrid.add(keyBinderLeft.buttonKey).width(300f).height(40f).row();
+        controlsGrid.add(keyBinderRight.labelName).left().padRight(12f).width(150f);
+        controlsGrid.add(keyBinderRight.buttonKey).width(300f).height(40f).row();
+        controlsGrid.add(keyBinderRestart.labelName).left().padRight(12f).width(150f);
+        controlsGrid.add(keyBinderRestart.buttonKey).width(300f).height(40f).row();
+        cardControls.add(controlsGrid).growX();
+        content.add(cardControls).growX().padBottom(14f).row();
 
-        // Tarjeta: AUDIO
+        // Card: AUDIO
         Table cardAudio = makeCard();
-        Label secAudio = new Label(Lang.cfgAudio(), skin, "section");
-        secAudio.setFontScale(1.12f);
-        cardAudio.add(secAudio).left().padBottom(8f).row();
-        Table ta = new Table();
-        ta.defaults().pad(8f);
-        ta.add(lblVol).left().padRight(12f).width(150f);
-        ta.add(sliderVolumen).growX().padRight(12f).minWidth(420f).height(26f);
-        ta.add(lblVolumenValor).width(80f).left();
-        cardAudio.add(ta).growX();
+        Label labelAudioTitle = new Label(Lang.cfgAudio(), skin, "section");
+        labelAudioTitle.setFontScale(1.12f);
+        cardAudio.add(labelAudioTitle).left().padBottom(8f).row();
+        Table audioRow = new Table();
+        audioRow.defaults().pad(8f);
+        audioRow.add(labelVolumeTitle).left().padRight(12f).width(150f);
+        audioRow.add(sliderVolume).growX().padRight(12f).minWidth(420f).height(26f);
+        audioRow.add(labelVolumeValue).width(80f).left();
+        cardAudio.add(audioRow).growX();
         content.add(cardAudio).growX().padBottom(14f).row();
 
-        // Tarjeta: IDIOMA
-        Table cardIdioma = makeCard();
-        cardIdioma.add(tituloIdioma).left().padBottom(8f).row();
-        Table ti = new Table();
-        ti.defaults().pad(8f);
-        ti.add(new Label(Lang.cfgSelect(), skin)).left().padRight(12f).width(150f);
-        ti.add(sbIdioma).width(300f).left();
-        cardIdioma.add(ti).growX();
-        content.add(cardIdioma).growX().padBottom(10f).row();
+        // Card: LANGUAGE
+        Table cardLanguage = makeCard();
+        cardLanguage.add(labelLanguageTitle).left().padBottom(8f).row();
+        Table languageRow = new Table();
+        languageRow.defaults().pad(8f);
+        languageRow.add(new Label(Lang.cfgSelect(), skin)).left().padRight(12f).width(150f);
+        languageRow.add(selectLanguage).width(300f).left().padLeft(4f); // margen pequeño adicional
+        cardLanguage.add(languageRow).growX();
+        content.add(cardLanguage).growX().padBottom(10f).row();
 
-        Table botones = new Table();
-        botones.defaults().pad(10f).width(240f).height(52f);
-        botones.add(btnVolver);
-        botones.add(btnGuardar);
-        content.add(botones).right();
+        // Footer buttons
+        Table footerButtons = new Table();
+        footerButtons.defaults().pad(10f).width(240f).height(52f);
+        footerButtons.add(buttonBack);
+        footerButtons.add(buttonSave);
+        content.add(footerButtons).right();
 
         ScrollPane scroller = new ScrollPane(content, skin);
         scroller.setFadeScrollBars(false);
@@ -250,42 +248,42 @@ public class ConfigScreen extends BaseScreen {
         frame.add(scroller).width(CONTENT_MAX_WIDTH).growY().top();
         stage.addActor(frame);
 
-        // Captura teclas
+        // Key capture
         stage.addListener(new InputListener() {
             @Override
             public boolean keyDown(InputEvent event, int keycode) {
                 boolean handled = false;
-                handled |= kbUp.tryCapture(keycode);
-                handled |= kbDown.tryCapture(keycode);
-                handled |= kbLeft.tryCapture(keycode);
-                handled |= kbRight.tryCapture(keycode);
-                handled |= kbReiniciar.tryCapture(keycode);
+                handled |= keyBinderUp.tryCapture(keycode);
+                handled |= keyBinderDown.tryCapture(keycode);
+                handled |= keyBinderLeft.tryCapture(keycode);
+                handled |= keyBinderRight.tryCapture(keycode);
+                handled |= keyBinderRestart.tryCapture(keycode);
                 if (handled) {
-                    actualizarEstadoGuardar();
+                    updateSaveEnabledState();
                 }
                 return handled;
             }
         });
     }
 
-    private void onVolChanged() {
-        int v = Math.round(sliderVolumen.getValue());
-        lblVolumenValor.setText(v + "%");
+    private void onVolumeChanged() {
+        int v = Math.round(sliderVolume.getValue());
+        labelVolumeValue.setText(v + "%");
         AudioBus.setMasterVolume(v / 100f);
-        actualizarEstadoGuardar();
+        updateSaveEnabledState();
     }
 
-    private void actualizarEstadoGuardar() {
-        int idiomaNow = sbIdioma.getSelected().equals(Lang.langEnglish()) ? 2 : 1;
-        boolean cambioValido
-                = kbUp.cambioValido()
-                || kbDown.cambioValido()
-                || kbLeft.cambioValido()
-                || kbRight.cambioValido()
-                || kbReiniciar.cambioValido()
-                || Math.round(sliderVolumen.getValue()) != volOriginal
-                || idiomaNow != idiomaOriginal;
-        btnGuardar.setDisabled(!cambioValido);
+    private void updateSaveEnabledState() {
+        int languageNow = selectLanguage.getSelected().equals(Lang.langEnglish()) ? 2 : 1;
+        boolean validChange
+                = keyBinderUp.hasChanged()
+                || keyBinderDown.hasChanged()
+                || keyBinderLeft.hasChanged()
+                || keyBinderRight.hasChanged()
+                || keyBinderRestart.hasChanged()
+                || Math.round(sliderVolume.getValue()) != originalVolume
+                || languageNow != originalLanguage;
+        buttonSave.setDisabled(!validChange);
     }
 
     private int getCfg(String key, int def) {
@@ -338,191 +336,171 @@ public class ConfigScreen extends BaseScreen {
 
     private class KeyBinder {
 
-        final Label lbl;
-        final TextButton btn;
-        int original;
-        int actual;
-        boolean escuchando = false;
+        final Label labelName;
+        final TextButton buttonKey;
+        int originalKeycode;
+        int currentKeycode;
+        boolean listening = false;
 
-        KeyBinder(String nombre, String cfgKey, int valor) {
-            this.lbl = new Label(nombre, skin, "label-dim");
-            this.lbl.setFontScale(1.02f);
-            this.btn = new TextButton(Input.Keys.toString(valor), skin, "key");
-            this.btn.getLabel().setFontScale(1.02f);
-            this.btn.getLabel().setColor(Color.WHITE);
+        KeyBinder(String displayName, String configKey, int keycode) {
+            this.labelName = new Label(displayName, skin, "label-dim");
+            this.labelName.setFontScale(1.02f);
+            this.buttonKey = new TextButton(Input.Keys.toString(keycode), skin, "key");
+            this.buttonKey.getLabel().setFontScale(1.02f);
+            this.buttonKey.getLabel().setColor(Color.WHITE);
 
-            this.original = valor;
-            this.actual = valor;
+            this.originalKeycode = keycode;
+            this.currentKeycode = keycode;
 
-            btn.addListener(new ClickListener() {
+            buttonKey.addListener(new ClickListener() {
                 @Override
                 public void clicked(InputEvent event, float x, float y) {
-                    escuchando = true;
-                    btn.setText(Lang.pressAKey());
-                    btn.getLabel().setColor(Color.WHITE);
+                    listening = true;
+                    buttonKey.setText(Lang.pressAKey());
+                    buttonKey.getLabel().setColor(Color.WHITE);
                 }
             });
         }
 
         boolean tryCapture(int keycode) {
-            if (!escuchando) {
+            if (!listening) {
                 return false;
             }
             if (keycode == Input.Keys.ESCAPE) {
-                escuchando = false;
-                btn.setText(Input.Keys.toString(actual));
-                btn.getLabel().setColor(Color.WHITE);
+                listening = false;
+                buttonKey.setText(Input.Keys.toString(currentKeycode));
+                buttonKey.getLabel().setColor(Color.WHITE);
                 return true;
             }
-            actual = keycode;
-            btn.setText(Input.Keys.toString(actual));
-            escuchando = false;
-            btn.getLabel().setColor(Color.WHITE);
+            currentKeycode = keycode;
+            buttonKey.setText(Input.Keys.toString(currentKeycode));
+            listening = false;
+            buttonKey.getLabel().setColor(Color.WHITE);
             return true;
         }
 
-        boolean cambioValido() {
-            return actual != original;
+        boolean hasChanged() {
+            return currentKeycode != originalKeycode;
         }
 
-        void confirmar() {
-            original = actual;
+        void confirm() {
+            originalKeycode = currentKeycode;
         }
 
-        int getActual() {
-            return actual;
+        int getCurrentKeycode() {
+            return currentKeycode;
         }
     }
 
     private Skin buildSkin() {
-        Skin skin = new Skin();
+        Skin s = new Skin();
 
-        FreeTypeFontGenerator fontGenerator
-                = new FreeTypeFontGenerator(Gdx.files.internal("fonts/pokemon_fire_red.ttf"));
-        FreeTypeFontGenerator.FreeTypeFontParameter fontParams
-                = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        // Fuentes con contorno centralizadas (desde BaseScreen)
+        BitmapFont baseFont = createOutlinedFont(36, new Color(1, 1, 1, 0.94f), 2, Color.BLACK);
+        BitmapFont smallFont = createOutlinedFont(30, new Color(1, 1, 1, 0.86f), 2, Color.BLACK);
+        BitmapFont sectionFont = createOutlinedFont(38, new Color(1, 1, 1, 0.92f), 2, Color.BLACK);
+        BitmapFont monoFont = createOutlinedFont(32, new Color(1, 1, 1, 0.92f), 2, Color.BLACK);
 
-        fontParams.borderWidth = 2f;
-        fontParams.borderColor = Color.BLACK;
-
-        fontParams.size = 36;
-        fontParams.color = new Color(1, 1, 1, 0.94f);
-        BitmapFont baseFont = fontGenerator.generateFont(fontParams);
-
-        fontParams.size = 30;
-        fontParams.color = new Color(1, 1, 1, 0.86f);
-        BitmapFont smallFont = fontGenerator.generateFont(fontParams);
-
-        fontParams.size = 38;
-        fontParams.color = new Color(1, 1, 1, 0.92f);
-        BitmapFont sectionFont = fontGenerator.generateFont(fontParams);
-
-        fontParams.size = 32;
-        fontParams.color = new Color(1, 1, 1, 0.92f);
-        BitmapFont monoFont = fontGenerator.generateFont(fontParams);
-
-        fontGenerator.dispose();
-
-        skin.add("base-font", baseFont, BitmapFont.class);
-        skin.add("small-font", smallFont, BitmapFont.class);
-        skin.add("section-font", sectionFont, BitmapFont.class);
-        skin.add("mono-font", monoFont, BitmapFont.class);
+        s.add("base-font", baseFont, BitmapFont.class);
+        s.add("small-font", smallFont, BitmapFont.class);
+        s.add("section-font", sectionFont, BitmapFont.class);
+        s.add("mono-font", monoFont, BitmapFont.class);
 
         Pixmap whitePx = new Pixmap(8, 8, Pixmap.Format.RGBA8888);
         whitePx.setColor(Color.WHITE);
         whitePx.fill();
         Texture whiteTexture = new Texture(whitePx);
         whitePx.dispose();
-        skin.add("white", whiteTexture);
+        s.add("white", whiteTexture);
 
-        skin.add("default", new Label.LabelStyle(baseFont, new Color(1, 1, 1, 0.94f)));
-        skin.add("label-dim", new Label.LabelStyle(smallFont, new Color(1, 1, 1, 0.86f)));
-        skin.add("hint", new Label.LabelStyle(smallFont, new Color(1, 1, 1, 0.52f)));
-        skin.add("section", new Label.LabelStyle(sectionFont, new Color(1, 1, 1, 0.92f)));
-        skin.add("dialog", new Label.LabelStyle(baseFont, new Color(1, 1, 1, 0.96f)));
-        skin.add("mono", new Label.LabelStyle(monoFont, new Color(1, 1, 1, 0.92f)));
+        s.add("default", new Label.LabelStyle(baseFont, new Color(1, 1, 1, 0.94f)));
+        s.add("label-dim", new Label.LabelStyle(smallFont, new Color(1, 1, 1, 0.86f)));
+        s.add("hint", new Label.LabelStyle(smallFont, new Color(1, 1, 1, 0.52f)));
+        s.add("section", new Label.LabelStyle(sectionFont, new Color(1, 1, 1, 0.92f)));
+        s.add("dialog", new Label.LabelStyle(baseFont, new Color(1, 1, 1, 0.96f)));
+        s.add("mono", new Label.LabelStyle(monoFont, new Color(1, 1, 1, 0.92f)));
 
-        TextButton.TextButtonStyle btn = new TextButton.TextButtonStyle();
-        btn.font = baseFont;
-        btn.up = skin.newDrawable("white", new Color(1, 1, 1, 0.12f));
-        btn.over = skin.newDrawable("white", new Color(1, 1, 1, 0.18f));
-        btn.down = skin.newDrawable("white", new Color(1, 1, 1, 0.25f));
-        btn.disabled = skin.newDrawable("white", new Color(1, 1, 1, 0.06f));
-        btn.fontColor = Color.WHITE;
-        skin.add("default", btn);
+        TextButton.TextButtonStyle button = new TextButton.TextButtonStyle();
+        button.font = baseFont;
+        button.up = s.newDrawable("white", new Color(1, 1, 1, 0.12f));
+        button.over = s.newDrawable("white", new Color(1, 1, 1, 0.18f));
+        button.down = s.newDrawable("white", new Color(1, 1, 1, 0.25f));
+        button.disabled = s.newDrawable("white", new Color(1, 1, 1, 0.06f));
+        button.fontColor = Color.WHITE;
+        s.add("default", button);
 
-        TextButton.TextButtonStyle ctaBtn = new TextButton.TextButtonStyle(btn);
-        ctaBtn.up = skin.newDrawable("white", new Color(0.30f, 0.62f, 1f, 0.90f));
-        ctaBtn.over = skin.newDrawable("white", new Color(0.35f, 0.67f, 1f, 0.98f));
-        ctaBtn.down = skin.newDrawable("white", new Color(0.27f, 0.58f, 0.95f, 1f));
-        ctaBtn.disabled = skin.newDrawable("white", new Color(0.30f, 0.62f, 1f, 0.40f));
-        ctaBtn.font = baseFont;
-        ctaBtn.fontColor = Color.WHITE;
-        skin.add("cta", ctaBtn);
+        TextButton.TextButtonStyle cta = new TextButton.TextButtonStyle(button);
+        cta.up = s.newDrawable("white", new Color(0.30f, 0.62f, 1f, 0.90f));
+        cta.over = s.newDrawable("white", new Color(0.35f, 0.67f, 1f, 0.98f));
+        cta.down = s.newDrawable("white", new Color(0.27f, 0.58f, 0.95f, 1f));
+        cta.disabled = s.newDrawable("white", new Color(0.30f, 0.62f, 1f, 0.40f));
+        cta.font = baseFont;
+        cta.fontColor = Color.WHITE;
+        s.add("cta", cta);
 
-        TextButton.TextButtonStyle ghostBtn = new TextButton.TextButtonStyle(btn);
-        ghostBtn.up = skin.newDrawable("white", new Color(1, 1, 1, 0.10f));
-        ghostBtn.over = skin.newDrawable("white", new Color(1, 1, 1, 0.14f));
-        ghostBtn.down = skin.newDrawable("white", new Color(1, 1, 1, 0.20f));
-        ghostBtn.font = baseFont;
-        skin.add("ghost", ghostBtn);
+        TextButton.TextButtonStyle ghost = new TextButton.TextButtonStyle(button);
+        ghost.up = s.newDrawable("white", new Color(1, 1, 1, 0.10f));
+        ghost.over = s.newDrawable("white", new Color(1, 1, 1, 0.14f));
+        ghost.down = s.newDrawable("white", new Color(1, 1, 1, 0.20f));
+        ghost.font = baseFont;
+        s.add("ghost", ghost);
 
-        TextButton.TextButtonStyle keyBtn = new TextButton.TextButtonStyle(btn);
-        keyBtn.up = skin.newDrawable("white", new Color(1, 1, 1, 0.18f));
-        keyBtn.over = skin.newDrawable("white", new Color(1, 1, 1, 0.24f));
-        keyBtn.down = skin.newDrawable("white", new Color(1, 1, 1, 0.30f));
-        keyBtn.font = baseFont;
-        keyBtn.fontColor = Color.WHITE;
-        skin.add("key", keyBtn);
+        TextButton.TextButtonStyle key = new TextButton.TextButtonStyle(button);
+        key.up = s.newDrawable("white", new Color(1, 1, 1, 0.18f));
+        key.over = s.newDrawable("white", new Color(1, 1, 1, 0.24f));
+        key.down = s.newDrawable("white", new Color(1, 1, 1, 0.30f));
+        key.font = baseFont;
+        key.fontColor = Color.WHITE;
+        s.add("key", key);
 
         Window.WindowStyle window = new Window.WindowStyle();
         window.titleFont = smallFont;
         window.titleFontColor = Color.WHITE;
-        window.background = skin.newDrawable("white", new Color(0f, 0f, 0f, 0.86f));
-        skin.add("default", window);
+        window.background = s.newDrawable("white", new Color(0f, 0f, 0f, 0.86f));
+        s.add("default", window);
 
         Slider.SliderStyle slider = new Slider.SliderStyle();
-        slider.background = skin.newDrawable("white", new Color(1, 1, 1, 0.16f));
-        slider.knob = skin.newDrawable("white", Color.WHITE);
-        slider.knobBefore = skin.newDrawable("white", new Color(1, 1, 1, 0.60f));
-        slider.knobAfter = skin.newDrawable("white", new Color(1, 1, 1, 0.12f));
-        skin.add("default", slider);
+        slider.background = s.newDrawable("white", new Color(1, 1, 1, 0.16f));
+        slider.knob = s.newDrawable("white", Color.WHITE);
+        slider.knobBefore = s.newDrawable("white", new Color(1, 1, 1, 0.60f));
+        slider.knobAfter = s.newDrawable("white", new Color(1, 1, 1, 0.12f));
+        s.add("default", slider);
 
-        Slider.SliderStyle thickSlider = new Slider.SliderStyle(slider);
-        thickSlider.background.setMinHeight(12f);
-        thickSlider.knob.setMinHeight(26f);
-        thickSlider.knob.setMinWidth(26f);
-        thickSlider.knobBefore.setMinHeight(12f);
-        thickSlider.knobAfter.setMinHeight(12f);
-        skin.add("thick", thickSlider);
+        Slider.SliderStyle thick = new Slider.SliderStyle(slider);
+        thick.background.setMinHeight(12f);
+        thick.knob.setMinHeight(26f);
+        thick.knob.setMinWidth(26f);
+        thick.knobBefore.setMinHeight(12f);
+        thick.knobAfter.setMinHeight(12f);
+        s.add("thick", thick);
 
         SelectBox.SelectBoxStyle select = new SelectBox.SelectBoxStyle();
         select.font = baseFont;
         select.fontColor = Color.WHITE;
-        select.background = skin.newDrawable("white", new Color(1, 1, 1, 0.14f));
-        select.backgroundOver = skin.newDrawable("white", new Color(1, 1, 1, 0.20f));
-        select.backgroundOpen = skin.newDrawable("white", new Color(1, 1, 1, 0.20f));
+        select.background = s.newDrawable("white", new Color(1, 1, 1, 0.14f));
+        select.backgroundOver = s.newDrawable("white", new Color(1, 1, 1, 0.20f));
+        select.backgroundOpen = s.newDrawable("white", new Color(1, 1, 1, 0.20f));
 
-        List.ListStyle dropdownList = new List.ListStyle();
-        dropdownList.font = smallFont;
-        dropdownList.fontColorSelected = Color.BLACK;
-        dropdownList.fontColorUnselected = Color.WHITE;
-        dropdownList.selection = skin.newDrawable("white", new Color(1, 1, 1, 0.94f));
-        dropdownList.background = skin.newDrawable("white", new Color(0, 0, 0, 0.68f));
-        select.listStyle = dropdownList;
+        List.ListStyle listStyle = new List.ListStyle();
+        listStyle.font = smallFont;
+        listStyle.fontColorSelected = Color.BLACK;
+        listStyle.fontColorUnselected = Color.WHITE;
+        listStyle.selection = s.newDrawable("white", new Color(1, 1, 1, 0.94f));
+        listStyle.background = s.newDrawable("white", new Color(0, 0, 0, 0.68f));
+        select.listStyle = listStyle;
 
         select.scrollStyle = new ScrollPane.ScrollPaneStyle();
-        skin.add("default", select);
+        s.add("default", select);
 
-        ScrollPane.ScrollPaneStyle scrollPane = new ScrollPane.ScrollPaneStyle();
-        scrollPane.background = skin.newDrawable("white", new Color(1, 1, 1, 0.04f));
-        scrollPane.vScroll = skin.newDrawable("white", new Color(1, 1, 1, 0.10f));
-        scrollPane.vScrollKnob = skin.newDrawable("white", new Color(1, 1, 1, 0.35f));
-        scrollPane.hScroll = skin.newDrawable("white", new Color(1, 1, 1, 0.10f));
-        scrollPane.hScrollKnob = skin.newDrawable("white", new Color(1, 1, 1, 0.35f));
-        skin.add("default", scrollPane);
+        ScrollPane.ScrollPaneStyle scroll = new ScrollPane.ScrollPaneStyle();
+        scroll.background = s.newDrawable("white", new Color(1, 1, 1, 0.04f));
+        scroll.vScroll = s.newDrawable("white", new Color(1, 1, 1, 0.10f));
+        scroll.vScrollKnob = s.newDrawable("white", new Color(1, 1, 1, 0.35f));
+        scroll.hScroll = s.newDrawable("white", new Color(1, 1, 1, 0.10f));
+        scroll.hScrollKnob = s.newDrawable("white", new Color(1, 1, 1, 0.35f));
+        s.add("default", scroll);
 
-        return skin;
+        return s;
     }
 
     private Table makeCard() {
@@ -530,26 +508,26 @@ public class ConfigScreen extends BaseScreen {
         card.defaults().pad(6f);
         card.pad(14f);
         card.background(skin.newDrawable("white", new Color(1, 1, 1, 0.08f)));
-        Image sepTop = new Image(skin.newDrawable("white", new Color(1, 1, 1, 0.10f)));
-        sepTop.setHeight(1.2f);
-        sepTop.setScaling(Scaling.stretchX);
-        card.add(sepTop).growX().height(1.2f).padBottom(12f).row();
+        Image topDivider = new Image(skin.newDrawable("white", new Color(1, 1, 1, 0.10f)));
+        topDivider.setHeight(1.2f);
+        topDivider.setScaling(Scaling.stretchX);
+        card.add(topDivider).growX().height(1.2f).padBottom(12f).row();
         return card;
     }
 
     private Texture makeVerticalGradient(int w, int h, Color top, Color bottom) {
-        Pixmap p = new Pixmap(w, h, Pixmap.Format.RGBA8888);
+        Pixmap pixmap = new Pixmap(w, h, Pixmap.Format.RGBA8888);
         for (int y = 0; y < h; y++) {
             float t = 1f - (y / (float) (h - 1));
             float r = top.r * t + bottom.r * (1f - t);
             float g = top.g * t + bottom.g * (1f - t);
             float b = top.b * t + bottom.b * (1f - t);
             float a = top.a * t + bottom.a * (1f - t);
-            p.setColor(r, g, b, a);
-            p.drawLine(0, y, w, y);
+            pixmap.setColor(r, g, b, a);
+            pixmap.drawLine(0, y, w, y);
         }
-        Texture tx = new Texture(p);
-        p.dispose();
+        Texture tx = new Texture(pixmap);
+        pixmap.dispose();
         return tx;
     }
 
@@ -559,8 +537,8 @@ public class ConfigScreen extends BaseScreen {
         if (skin != null) {
             skin.dispose();
         }
-        if (gradientTex != null) {
-            gradientTex.dispose();
+        if (gradientTexture != null) {
+            gradientTexture.dispose();
         }
     }
 }

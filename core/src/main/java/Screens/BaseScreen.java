@@ -5,6 +5,8 @@ import static com.badlogic.gdx.Gdx.input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
@@ -12,27 +14,38 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.elkinedwin.LogicaUsuario.AudioBus;
 import com.elkinedwin.LogicaUsuario.AudioX;
 
 public abstract class BaseScreen implements Screen {
 
-    protected final Color BACKGROUND = new Color(34 / 255f, 32 / 255f, 52 / 255f, 1f);
     protected Stage stage;
 
     protected Music bgMusic;
-    private Texture bgTexture;
+    private Texture backgroundTexture;
+
+    private FreeTypeFontGenerator sharedFontGenerator;
 
     @Override
     public void show() {
         stage = new Stage(new ScreenViewport());
         input.setInputProcessor(stage);
 
-        if (bgTexture == null) {
-            bgTexture = new Texture("ui/bg_general.png");
-            Image bg = new Image(new TextureRegionDrawable(new TextureRegion(bgTexture)));
+        if (backgroundTexture == null) {
+            backgroundTexture = new Texture("ui/bg_general.png");
+            Image bg = new Image(new TextureRegionDrawable(new TextureRegion(backgroundTexture)));
             bg.setFillParent(true);
             stage.addActor(bg);
+        }
+
+        if (sharedFontGenerator == null) {
+            FileHandle ttf = Gdx.files.internal("fonts/pokemon_fire_red.ttf");
+            if (ttf.exists()) {
+                sharedFontGenerator = new FreeTypeFontGenerator(ttf);
+            }
         }
 
         startBgmIfNeeded();
@@ -56,9 +69,37 @@ public abstract class BaseScreen implements Screen {
         }
     }
 
+    protected Texture makeSolidTexture(int r, int g, int b, int a) {
+        Pixmap pm = new Pixmap(2, 2, Pixmap.Format.RGBA8888);
+        pm.setColor(r / 255f, g / 255f, b / 255f, a / 255f);
+        pm.fill();
+        Texture t = new Texture(pm);
+        pm.dispose();
+        return t;
+    }
+
+    protected BitmapFont createOutlinedFont(int sizePx, Color fillColor, int borderWidthPx, Color borderColor) {
+        if (sharedFontGenerator == null) {
+            // Fallback sin TTF
+            BitmapFont fallback = new BitmapFont();
+            fallback.setColor(fillColor);
+            return fallback;
+        }
+        FreeTypeFontGenerator.FreeTypeFontParameter p = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        p.size = sizePx;
+        p.color = fillColor;
+        p.borderWidth = borderWidthPx;
+        p.borderColor = borderColor;
+        return sharedFontGenerator.generateFont(p);
+    }
+
+    protected BitmapFont createOutlinedFont(int sizePx, String fillHex, int borderWidthPx, String borderHex) {
+        return createOutlinedFont(sizePx, Color.valueOf(fillHex), borderWidthPx, Color.valueOf(borderHex));
+    }
+
     @Override
     public void render(float delta) {
-        ScreenUtils.clear(BACKGROUND);
+        ScreenUtils.clear(0f, 0f, 0f, 0f);
         stage.act(delta);
         stage.draw();
     }
@@ -94,9 +135,13 @@ public abstract class BaseScreen implements Screen {
             bgMusic.dispose();
             bgMusic = null;
         }
-        if (bgTexture != null) {
-            bgTexture.dispose();
-            bgTexture = null;
+        if (backgroundTexture != null) {
+            backgroundTexture.dispose();
+            backgroundTexture = null;
+        }
+        if (sharedFontGenerator != null) {
+            sharedFontGenerator.dispose();
+            sharedFontGenerator = null;
         }
         stage.dispose();
     }
