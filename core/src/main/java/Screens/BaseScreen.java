@@ -4,8 +4,12 @@ import static com.badlogic.gdx.Gdx.input;
 
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.utils.ScreenUtils;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.audio.Music;
 import com.elkinedwin.LogicaUsuario.AudioBus;
@@ -17,11 +21,20 @@ public abstract class BaseScreen implements Screen {
     protected Stage stage;
 
     protected Music bgMusic;
+    private Texture bgTexture;
 
     @Override
     public void show() {
         stage = new Stage(new ScreenViewport());
         input.setInputProcessor(stage);
+
+        if (bgTexture == null) {
+            bgTexture = new Texture("ui/bg_general.png");
+            Image bg = new Image(new TextureRegionDrawable(new TextureRegion(bgTexture)));
+            bg.setFillParent(true);
+            stage.addActor(bg);
+        }
+
         startBgmIfNeeded();
         onShow();
     }
@@ -80,6 +93,10 @@ public abstract class BaseScreen implements Screen {
             AudioBus.unregisterMusic(bgMusic);
             bgMusic.dispose();
             bgMusic = null;
+        }
+        if (bgTexture != null) {
+            bgTexture.dispose();
+            bgTexture = null;
         }
         stage.dispose();
     }

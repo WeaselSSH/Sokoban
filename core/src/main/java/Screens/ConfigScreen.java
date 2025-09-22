@@ -2,12 +2,14 @@ package Screens;
 
 import GameLogic.Lang;
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -46,13 +48,12 @@ public class ConfigScreen extends BaseScreen {
 
     @Override
     protected void onShow() {
-        // Asegura idioma activo al entrar
         int idioma = (ManejoUsuarios.UsuarioActivo != null) ? ManejoUsuarios.UsuarioActivo.getIdioma() : 1;
         Lang.init(idioma);
 
         skin = buildSkin();
 
-        BitmapFont f = skin.getFont("default-font");
+        BitmapFont f = skin.getFont("base-font");
         f.getData().setScale(1.15f);
 
         int kUp = getCfg("MoverArriba", Input.Keys.UP);
@@ -75,7 +76,6 @@ public class ConfigScreen extends BaseScreen {
         bg.setScaling(Scaling.fill);
         stage.addActor(bg);
 
-        // === Secciones i18n ===
         kbUp = new KeyBinder(Lang.cfgUp(), "MoverArriba", kUp);
         kbDown = new KeyBinder(Lang.cfgDown(), "MoverAbajo", kDown);
         kbLeft = new KeyBinder(Lang.cfgLeft(), "MoverIzq", kLeft);
@@ -234,7 +234,6 @@ public class ConfigScreen extends BaseScreen {
         cardIdioma.add(ti).growX();
         content.add(cardIdioma).growX().padBottom(10f).row();
 
-        // Footer botones
         Table botones = new Table();
         botones.defaults().pad(10f).width(240f).height(52f);
         botones.add(btnVolver);
@@ -396,101 +395,134 @@ public class ConfigScreen extends BaseScreen {
     }
 
     private Skin buildSkin() {
-        Skin s = new Skin();
+        Skin skin = new Skin();
 
-        BitmapFont font = new BitmapFont();
-        s.add("default-font", font, BitmapFont.class);
+        FreeTypeFontGenerator fontGenerator
+                = new FreeTypeFontGenerator(Gdx.files.internal("fonts/pokemon_fire_red.ttf"));
+        FreeTypeFontGenerator.FreeTypeFontParameter fontParams
+                = new FreeTypeFontGenerator.FreeTypeFontParameter();
 
-        Pixmap px = new Pixmap(8, 8, Pixmap.Format.RGBA8888);
-        px.setColor(Color.WHITE);
-        px.fill();
-        Texture white = new Texture(px);
-        px.dispose();
-        s.add("white", white);
+        fontParams.borderWidth = 2f;
+        fontParams.borderColor = Color.BLACK;
 
-        s.add("default", new Label.LabelStyle(font, new Color(1, 1, 1, 0.94f)));
-        s.add("label-dim", new Label.LabelStyle(font, new Color(1, 1, 1, 0.86f)));
-        s.add("hint", new Label.LabelStyle(font, new Color(1, 1, 1, 0.52f)));
-        s.add("section", new Label.LabelStyle(font, new Color(1, 1, 1, 0.92f)));
-        s.add("dialog", new Label.LabelStyle(font, new Color(1, 1, 1, 0.96f)));
-        s.add("mono", new Label.LabelStyle(font, new Color(1, 1, 1, 0.92f)));
+        fontParams.size = 36;
+        fontParams.color = new Color(1, 1, 1, 0.94f);
+        BitmapFont baseFont = fontGenerator.generateFont(fontParams);
 
-        TextButton.TextButtonStyle bs = new TextButton.TextButtonStyle();
-        bs.font = font;
-        bs.up = s.newDrawable("white", new Color(1, 1, 1, 0.12f));
-        bs.over = s.newDrawable("white", new Color(1, 1, 1, 0.18f));
-        bs.down = s.newDrawable("white", new Color(1, 1, 1, 0.25f));
-        bs.disabled = s.newDrawable("white", new Color(1, 1, 1, 0.06f));
-        bs.fontColor = Color.WHITE;
-        s.add("default", bs);
+        fontParams.size = 30;
+        fontParams.color = new Color(1, 1, 1, 0.86f);
+        BitmapFont smallFont = fontGenerator.generateFont(fontParams);
 
-        TextButton.TextButtonStyle cta = new TextButton.TextButtonStyle(bs);
-        cta.up = s.newDrawable("white", new Color(0.30f, 0.62f, 1f, 0.90f));
-        cta.over = s.newDrawable("white", new Color(0.35f, 0.67f, 1f, 0.98f));
-        cta.down = s.newDrawable("white", new Color(0.27f, 0.58f, 0.95f, 1f));
-        cta.disabled = s.newDrawable("white", new Color(0.30f, 0.62f, 1f, 0.40f));
-        cta.fontColor = Color.WHITE;
-        s.add("cta", cta);
+        fontParams.size = 38;
+        fontParams.color = new Color(1, 1, 1, 0.92f);
+        BitmapFont sectionFont = fontGenerator.generateFont(fontParams);
 
-        TextButton.TextButtonStyle ghost = new TextButton.TextButtonStyle(bs);
-        ghost.up = s.newDrawable("white", new Color(1, 1, 1, 0.10f));
-        ghost.over = s.newDrawable("white", new Color(1, 1, 1, 0.14f));
-        ghost.down = s.newDrawable("white", new Color(1, 1, 1, 0.20f));
-        s.add("ghost", ghost);
+        fontParams.size = 32;
+        fontParams.color = new Color(1, 1, 1, 0.92f);
+        BitmapFont monoFont = fontGenerator.generateFont(fontParams);
 
-        TextButton.TextButtonStyle key = new TextButton.TextButtonStyle(bs);
-        key.up = s.newDrawable("white", new Color(1, 1, 1, 0.18f));
-        key.over = s.newDrawable("white", new Color(1, 1, 1, 0.24f));
-        key.down = s.newDrawable("white", new Color(1, 1, 1, 0.30f));
-        key.fontColor = Color.WHITE;
-        s.add("key", key);
+        fontGenerator.dispose();
 
-        Window.WindowStyle ws = new Window.WindowStyle();
-        ws.titleFont = font;
-        ws.titleFontColor = Color.WHITE;
-        ws.background = s.newDrawable("white", new Color(0f, 0f, 0f, 0.86f));
-        s.add("default", ws);
+        skin.add("base-font", baseFont, BitmapFont.class);
+        skin.add("small-font", smallFont, BitmapFont.class);
+        skin.add("section-font", sectionFont, BitmapFont.class);
+        skin.add("mono-font", monoFont, BitmapFont.class);
 
-        Slider.SliderStyle ssl = new Slider.SliderStyle();
-        ssl.background = s.newDrawable("white", new Color(1, 1, 1, 0.16f));
-        ssl.knob = s.newDrawable("white", Color.WHITE);
-        ssl.knobBefore = s.newDrawable("white", new Color(1, 1, 1, 0.60f));
-        ssl.knobAfter = s.newDrawable("white", new Color(1, 1, 1, 0.12f));
-        s.add("default", ssl);
+        Pixmap whitePx = new Pixmap(8, 8, Pixmap.Format.RGBA8888);
+        whitePx.setColor(Color.WHITE);
+        whitePx.fill();
+        Texture whiteTexture = new Texture(whitePx);
+        whitePx.dispose();
+        skin.add("white", whiteTexture);
 
-        Slider.SliderStyle thick = new Slider.SliderStyle(ssl);
-        thick.background.setMinHeight(12f);
-        thick.knob.setMinHeight(26f);
-        thick.knob.setMinWidth(26f);
-        thick.knobBefore.setMinHeight(12f);
-        thick.knobAfter.setMinHeight(12f);
-        s.add("thick", thick);
+        skin.add("default", new Label.LabelStyle(baseFont, new Color(1, 1, 1, 0.94f)));
+        skin.add("label-dim", new Label.LabelStyle(smallFont, new Color(1, 1, 1, 0.86f)));
+        skin.add("hint", new Label.LabelStyle(smallFont, new Color(1, 1, 1, 0.52f)));
+        skin.add("section", new Label.LabelStyle(sectionFont, new Color(1, 1, 1, 0.92f)));
+        skin.add("dialog", new Label.LabelStyle(baseFont, new Color(1, 1, 1, 0.96f)));
+        skin.add("mono", new Label.LabelStyle(monoFont, new Color(1, 1, 1, 0.92f)));
 
-        SelectBox.SelectBoxStyle sbs = new SelectBox.SelectBoxStyle();
-        sbs.font = font;
-        sbs.fontColor = Color.WHITE;
-        sbs.background = s.newDrawable("white", new Color(1, 1, 1, 0.14f));
-        sbs.backgroundOver = s.newDrawable("white", new Color(1, 1, 1, 0.20f));
-        sbs.backgroundOpen = s.newDrawable("white", new Color(1, 1, 1, 0.20f));
-        List.ListStyle listStyle = new List.ListStyle();
-        listStyle.font = font;
-        listStyle.fontColorSelected = Color.BLACK;
-        listStyle.fontColorUnselected = Color.WHITE;
-        listStyle.selection = s.newDrawable("white", new Color(1, 1, 1, 0.94f));
-        listStyle.background = s.newDrawable("white", new Color(0, 0, 0, 0.68f));
-        sbs.listStyle = listStyle;
-        sbs.scrollStyle = new ScrollPane.ScrollPaneStyle();
-        s.add("default", sbs);
+        TextButton.TextButtonStyle btn = new TextButton.TextButtonStyle();
+        btn.font = baseFont;
+        btn.up = skin.newDrawable("white", new Color(1, 1, 1, 0.12f));
+        btn.over = skin.newDrawable("white", new Color(1, 1, 1, 0.18f));
+        btn.down = skin.newDrawable("white", new Color(1, 1, 1, 0.25f));
+        btn.disabled = skin.newDrawable("white", new Color(1, 1, 1, 0.06f));
+        btn.fontColor = Color.WHITE;
+        skin.add("default", btn);
 
-        ScrollPane.ScrollPaneStyle sps = new ScrollPane.ScrollPaneStyle();
-        sps.background = s.newDrawable("white", new Color(1, 1, 1, 0.04f));
-        sps.vScroll = s.newDrawable("white", new Color(1, 1, 1, 0.10f));
-        sps.vScrollKnob = s.newDrawable("white", new Color(1, 1, 1, 0.35f));
-        sps.hScroll = s.newDrawable("white", new Color(1, 1, 1, 0.10f));
-        sps.hScrollKnob = s.newDrawable("white", new Color(1, 1, 1, 0.35f));
-        s.add("default", sps);
+        TextButton.TextButtonStyle ctaBtn = new TextButton.TextButtonStyle(btn);
+        ctaBtn.up = skin.newDrawable("white", new Color(0.30f, 0.62f, 1f, 0.90f));
+        ctaBtn.over = skin.newDrawable("white", new Color(0.35f, 0.67f, 1f, 0.98f));
+        ctaBtn.down = skin.newDrawable("white", new Color(0.27f, 0.58f, 0.95f, 1f));
+        ctaBtn.disabled = skin.newDrawable("white", new Color(0.30f, 0.62f, 1f, 0.40f));
+        ctaBtn.font = baseFont;
+        ctaBtn.fontColor = Color.WHITE;
+        skin.add("cta", ctaBtn);
 
-        return s;
+        TextButton.TextButtonStyle ghostBtn = new TextButton.TextButtonStyle(btn);
+        ghostBtn.up = skin.newDrawable("white", new Color(1, 1, 1, 0.10f));
+        ghostBtn.over = skin.newDrawable("white", new Color(1, 1, 1, 0.14f));
+        ghostBtn.down = skin.newDrawable("white", new Color(1, 1, 1, 0.20f));
+        ghostBtn.font = baseFont;
+        skin.add("ghost", ghostBtn);
+
+        TextButton.TextButtonStyle keyBtn = new TextButton.TextButtonStyle(btn);
+        keyBtn.up = skin.newDrawable("white", new Color(1, 1, 1, 0.18f));
+        keyBtn.over = skin.newDrawable("white", new Color(1, 1, 1, 0.24f));
+        keyBtn.down = skin.newDrawable("white", new Color(1, 1, 1, 0.30f));
+        keyBtn.font = baseFont;
+        keyBtn.fontColor = Color.WHITE;
+        skin.add("key", keyBtn);
+
+        Window.WindowStyle window = new Window.WindowStyle();
+        window.titleFont = smallFont;
+        window.titleFontColor = Color.WHITE;
+        window.background = skin.newDrawable("white", new Color(0f, 0f, 0f, 0.86f));
+        skin.add("default", window);
+
+        Slider.SliderStyle slider = new Slider.SliderStyle();
+        slider.background = skin.newDrawable("white", new Color(1, 1, 1, 0.16f));
+        slider.knob = skin.newDrawable("white", Color.WHITE);
+        slider.knobBefore = skin.newDrawable("white", new Color(1, 1, 1, 0.60f));
+        slider.knobAfter = skin.newDrawable("white", new Color(1, 1, 1, 0.12f));
+        skin.add("default", slider);
+
+        Slider.SliderStyle thickSlider = new Slider.SliderStyle(slider);
+        thickSlider.background.setMinHeight(12f);
+        thickSlider.knob.setMinHeight(26f);
+        thickSlider.knob.setMinWidth(26f);
+        thickSlider.knobBefore.setMinHeight(12f);
+        thickSlider.knobAfter.setMinHeight(12f);
+        skin.add("thick", thickSlider);
+
+        SelectBox.SelectBoxStyle select = new SelectBox.SelectBoxStyle();
+        select.font = baseFont;
+        select.fontColor = Color.WHITE;
+        select.background = skin.newDrawable("white", new Color(1, 1, 1, 0.14f));
+        select.backgroundOver = skin.newDrawable("white", new Color(1, 1, 1, 0.20f));
+        select.backgroundOpen = skin.newDrawable("white", new Color(1, 1, 1, 0.20f));
+
+        List.ListStyle dropdownList = new List.ListStyle();
+        dropdownList.font = smallFont;
+        dropdownList.fontColorSelected = Color.BLACK;
+        dropdownList.fontColorUnselected = Color.WHITE;
+        dropdownList.selection = skin.newDrawable("white", new Color(1, 1, 1, 0.94f));
+        dropdownList.background = skin.newDrawable("white", new Color(0, 0, 0, 0.68f));
+        select.listStyle = dropdownList;
+
+        select.scrollStyle = new ScrollPane.ScrollPaneStyle();
+        skin.add("default", select);
+
+        ScrollPane.ScrollPaneStyle scrollPane = new ScrollPane.ScrollPaneStyle();
+        scrollPane.background = skin.newDrawable("white", new Color(1, 1, 1, 0.04f));
+        scrollPane.vScroll = skin.newDrawable("white", new Color(1, 1, 1, 0.10f));
+        scrollPane.vScrollKnob = skin.newDrawable("white", new Color(1, 1, 1, 0.35f));
+        scrollPane.hScroll = skin.newDrawable("white", new Color(1, 1, 1, 0.10f));
+        scrollPane.hScrollKnob = skin.newDrawable("white", new Color(1, 1, 1, 0.35f));
+        skin.add("default", scrollPane);
+
+        return skin;
     }
 
     private Table makeCard() {

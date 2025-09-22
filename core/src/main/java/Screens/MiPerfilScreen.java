@@ -20,8 +20,7 @@ import com.badlogic.gdx.utils.Scaling;
 
 import com.elkinedwin.LogicaUsuario.ManejoUsuarios;
 import com.elkinedwin.LogicaUsuario.Usuario;
-import com.elkinedwin.LogicaUsuario.ManejoArchivos; // <-- import para validar existencia
-           // <-- para usar Lang.errUserExists()
+import com.elkinedwin.LogicaUsuario.ManejoArchivos;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -34,434 +33,557 @@ public class MiPerfilScreen extends BaseScreen {
 
     private final Game game;
 
-    private FreeTypeFontGenerator generator;
-    private BitmapFont titleFont, h2Font, bodyFont, smallFont, bigFont;
+    // Fuentes
+    private FreeTypeFontGenerator fontGenerator;
+    private BitmapFont titleFont, subtitleFont, bodyFont, smallFont, largeFont;
 
-    private Texture avatarTex;
-    private Image   avatarImg;
+    // Avatar
+    private Texture avatarTexture;
+    private Image avatarImage;
 
-    private Texture texPanelBg, texDivider, texEditIcon;
+    // Texturas UI
+    private Texture panelTexture, dividerTexture, editIconTexture;
 
-    private Label lblNombreVal;
-    private Label lblUsuarioVal;
-    private Label lblPassVal;
+    // Labels dinámicos
+    private Label labelNameValue;
+    private Label labelUserValue;
+    private Label labelPasswordValue;
 
-    private Texture dlgBgTex, tfBgTex, tfSelTex, tfCurTex, btnClearTex;
-    private TextureRegionDrawable dlgBgDr, tfBgDr, tfSelDr, tfCurDr, btnClearDr;
-    private Window.WindowStyle winStyleCached;
-    private TextField.TextFieldStyle tfStyleCached;
-    private TextButton.TextButtonStyle btnStyleCached;
+    // Recursos de diálogos/inputs
+    private Texture dialogBackgroundTexture, textfieldBackgroundTexture, textfieldSelectionTexture, textfieldCursorTexture, buttonClearTexture;
+    private TextureRegionDrawable dialogBackgroundDrawable, textfieldBackgroundDrawable, textfieldSelectionDrawable, textfieldCursorDrawable, buttonClearDrawable;
+    private Window.WindowStyle cachedWindowStyle;
+    private TextField.TextFieldStyle cachedTextFieldStyle;
+    private TextButton.TextButtonStyle cachedTextButtonStyle;
 
-    public MiPerfilScreen(Game game) { this.game = game; }
+    public MiPerfilScreen(Game game) {
+        this.game = game;
+    }
 
     @Override
     protected void onShow() {
-        generator = new FreeTypeFontGenerator(files.internal("fonts/pokemon_fire_red.ttf"));
-        titleFont = genFont(88, "E6DFC9");
-        h2Font    = genFont(48, "E6DFC9");
-        bodyFont  = genFont(34, "E6DFC9");
-        smallFont = genFont(26, "BFC4D0");
-        bigFont   = genFont(60, "FFFFFF");
+        fontGenerator = new FreeTypeFontGenerator(files.internal("fonts/pokemon_fire_red.ttf"));
+        // Fuentes con contorno (borde negro)
+        titleFont = generateFontWithOutline(88, "E6DFC9", 3, "000000");
+        subtitleFont = generateFontWithOutline(48, "E6DFC9", 2, "000000");
+        bodyFont = generateFontWithOutline(34, "E6DFC9", 2, "000000");
+        smallFont = generateFontWithOutline(26, "BFC4D0", 1, "000000");
+        largeFont = generateFontWithOutline(60, "FFFFFF", 3, "000000");
 
+        // Estilos de texto
         Label.LabelStyle titleStyle = new Label.LabelStyle(titleFont, titleFont.getColor());
-        Label.LabelStyle h2Style    = new Label.LabelStyle(h2Font,    h2Font.getColor());
-        Label.LabelStyle keyStyle   = new Label.LabelStyle(bodyFont,  new Color(1,1,1,0.85f));
-        Label.LabelStyle valStyle   = new Label.LabelStyle(bodyFont,  Color.WHITE);
-        Label.LabelStyle cellStyle  = new Label.LabelStyle(bodyFont,  Color.WHITE);
-        Label.LabelStyle thStyle    = new Label.LabelStyle(bodyFont,  new Color(1,1,1,0.95f));
-        Label.LabelStyle hintStyle  = new Label.LabelStyle(smallFont, smallFont.getColor());
-        Label.LabelStyle bigStyle   = new Label.LabelStyle(bigFont,   bigFont.getColor());
+        Label.LabelStyle subtitleStyle = new Label.LabelStyle(subtitleFont, subtitleFont.getColor());
+        Label.LabelStyle keyStyle = new Label.LabelStyle(bodyFont, new Color(1, 1, 1, 0.85f));
+        Label.LabelStyle valueStyle = new Label.LabelStyle(bodyFont, Color.WHITE);
+        Label.LabelStyle cellStyle = new Label.LabelStyle(bodyFont, Color.WHITE);
+        Label.LabelStyle tableHeadStyle = new Label.LabelStyle(bodyFont, new Color(1, 1, 1, 0.95f));
+        Label.LabelStyle hintStyle = new Label.LabelStyle(smallFont, smallFont.getColor());
+        Label.LabelStyle largeValueStyle = new Label.LabelStyle(largeFont, largeFont.getColor());
 
-        texPanelBg  = makeColorTex(255, 255, 255, 22);
-        texDivider  = makeColorTex(255, 255, 255, 38);
+        // Paneles y divisores
+        panelTexture = makeColorTexture(255, 255, 255, 22);
+        dividerTexture = makeColorTexture(255, 255, 255, 38);
 
+        // Icono editar
         String editIconPath = "../Imagenes/Editar.png";
         if (files.internal(editIconPath).exists()) {
-            texEditIcon = new Texture(files.internal(editIconPath));
+            editIconTexture = new Texture(files.internal(editIconPath));
         } else if (files.internal("ui/edit.png").exists()) {
-            texEditIcon = new Texture(files.internal("ui/edit.png"));
+            editIconTexture = new Texture(files.internal("ui/edit.png"));
         } else {
-            texEditIcon = makeColorTex(255,255,255,180);
+            editIconTexture = makeColorTexture(255, 255, 255, 180);
         }
-        ImageButton.ImageButtonStyle editStyle = new ImageButton.ImageButtonStyle();
-        editStyle.imageUp = new TextureRegionDrawable(new TextureRegion(texEditIcon));
+        ImageButton.ImageButtonStyle editButtonStyle = new ImageButton.ImageButtonStyle();
+        editButtonStyle.imageUp = new TextureRegionDrawable(new TextureRegion(editIconTexture));
 
-        TextureRegionDrawable panelBg   = new TextureRegionDrawable(new TextureRegion(texPanelBg));
-        TextureRegionDrawable dividerBg = new TextureRegionDrawable(new TextureRegion(texDivider));
+        TextureRegionDrawable panelBackgroundDrawable = new TextureRegionDrawable(new TextureRegion(panelTexture));
+        TextureRegionDrawable dividerBackgroundDrawable = new TextureRegionDrawable(new TextureRegion(dividerTexture));
 
+        // Root
         Table root = new Table();
         root.setFillParent(true);
         stage.addActor(root);
 
-        TextButton.TextButtonStyle backStyle = new TextButton.TextButtonStyle();
-        backStyle.font = bodyFont;
-        backStyle.fontColor = Color.WHITE;
-        backStyle.overFontColor = Color.WHITE;
-        backStyle.downFontColor = Color.WHITE;
-        backStyle.checkedFontColor = Color.WHITE;
-        backStyle.disabledFontColor = Color.WHITE;
-        Texture transparent = makeColorTex(0,0,0,0);
-        TextureRegionDrawable trd = new TextureRegionDrawable(new TextureRegion(transparent));
-        backStyle.up = trd; backStyle.over = trd; backStyle.down = trd; backStyle.checked = trd; backStyle.disabled = trd;
+        // Botón volver (transparente)
+        TextButton.TextButtonStyle backButtonStyle = new TextButton.TextButtonStyle();
+        backButtonStyle.font = bodyFont;
+        backButtonStyle.fontColor = Color.WHITE;
+        backButtonStyle.overFontColor = Color.WHITE;
+        backButtonStyle.downFontColor = Color.WHITE;
+        backButtonStyle.checkedFontColor = Color.WHITE;
+        backButtonStyle.disabledFontColor = Color.WHITE;
+        Texture transparentTexture = makeColorTexture(0, 0, 0, 0);
+        TextureRegionDrawable transparentDrawable = new TextureRegionDrawable(new TextureRegion(transparentTexture));
+        backButtonStyle.up = transparentDrawable;
+        backButtonStyle.over = transparentDrawable;
+        backButtonStyle.down = transparentDrawable;
+        backButtonStyle.checked = transparentDrawable;
+        backButtonStyle.disabled = transparentDrawable;
 
-        TextButton btnBack = new TextButton("Volver", backStyle);
-        btnBack.getLabel().setColor(Color.WHITE);
-        btnBack.addListener(new ClickListener() {
-            @Override public void clicked(InputEvent event, float x, float y) { game.setScreen(new MenuScreen(game)); }
+        TextButton backButton = new TextButton(Lang.back(), backButtonStyle);
+        backButton.getLabel().setColor(Color.WHITE);
+        backButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                game.setScreen(new MenuScreen(game));
+            }
         });
 
         Table topbar = new Table();
-        topbar.add(btnBack).left().pad(12f);
+        topbar.add(backButton).left().pad(12f);
         root.add(topbar).expandX().fillX().row();
 
+        // Contenido
         Table content = new Table();
         content.top().pad(24f);
         content.defaults().pad(10f);
 
-        ScrollPane sp = new ScrollPane(content);
-        sp.setFadeScrollBars(false);
-        root.add(sp).expand().fill().pad(0, 16f, 16f, 16f).row();
+        ScrollPane scrollPane = new ScrollPane(content);
+        scrollPane.setFadeScrollBars(false);
+        root.add(scrollPane).expand().fill().pad(0, 16f, 16f, 16f).row();
 
-        Usuario u = ManejoUsuarios.UsuarioActivo;
+        Usuario currentUser = ManejoUsuarios.UsuarioActivo;
 
-        avatarImg = new Image();
-        avatarImg.setScaling(Scaling.fit);
+        // Avatar
+        avatarImage = new Image();
+        avatarImage.setScaling(Scaling.fit);
         reloadAvatar();
 
-        ImageButton btnEditAvatar = new ImageButton(editStyle);
-        btnEditAvatar.addListener(new ClickListener() {
-            @Override public void clicked(InputEvent event, float x, float y) { onChangeAvatar(); }
+        ImageButton editAvatarButton = new ImageButton(editButtonStyle);
+        editAvatarButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                onChangeAvatar();
+            }
         });
 
         Table avatarRow = new Table();
-        avatarRow.add(avatarImg).size(220f, 220f).center().padRight(12f);
+        avatarRow.add(avatarImage).size(220f, 220f).center().padRight(12f);
         avatarRow.add().width(8f);
-        avatarRow.add(btnEditAvatar).size(48f, 48f).top().right();
+        avatarRow.add(editAvatarButton).size(48f, 48f).top().right();
         content.add(avatarRow).center().row();
 
-        String displayName = (u != null && u.getNombre()!=null && !u.getNombre().isEmpty())
-                ? u.getNombre() : (u != null ? u.getUsuario() : "Invitado");
+        String displayName = (currentUser != null && currentUser.getNombre() != null && !currentUser.getNombre().isEmpty())
+                ? currentUser.getNombre() : (currentUser != null ? currentUser.getUsuario() : Lang.guest());
         content.add(new Label(displayName, titleStyle)).padTop(2f).center().row();
 
-        content.add(cardHeader("Datos de la cuenta", h2Style)).expandX().fillX().row();
+        // Card: datos de cuenta
+        content.add(cardHeader(Lang.cfgControls(), subtitleStyle)).expandX().fillX().row(); // (solo encabezado visual; puedes cambiar el texto)
 
-        Table cardInfo = new Table();
-        cardInfo.setBackground(panelBg);
-        cardInfo.pad(20f);
-        cardInfo.defaults().left().pad(10f);
+        Table accountCard = new Table();
+        accountCard.setBackground(panelBackgroundDrawable);
+        accountCard.pad(20f);
+        accountCard.defaults().left().pad(10f);
 
-        lblNombreVal  = new Label(textOrDash(u != null ? u.getNombre() : null),  valStyle);
-        Table rNombre = kvRowWithValue("Nombre completo", lblNombreVal, keyStyle);
-        cardInfo.add(rNombre).expandX().fillX().row();
-        addDivider(cardInfo, dividerBg);
+        labelNameValue = new Label(textOrDash(currentUser != null ? currentUser.getNombre() : null), valueStyle);
+        Table nameRow = keyValueRowWithLabel("Nombre completo", labelNameValue, keyStyle);
+        accountCard.add(nameRow).expandX().fillX().row();
+        addDivider(accountCard, dividerBackgroundDrawable);
 
-        lblUsuarioVal = new Label(textOrDash(u != null ? u.getUsuario() : null), valStyle);
-        Table rUsuario = kvRowWithValue("Usuario", lblUsuarioVal, keyStyle);
-        ImageButton btnEditUsuario = new ImageButton(editStyle);
-        btnEditUsuario.addListener(new ClickListener() { @Override public void clicked(InputEvent e,float x,float y){ onEditUsuario(); }});
-        rUsuario.add(btnEditUsuario).size(32f, 32f).padLeft(8f);
-        cardInfo.add(rUsuario).expandX().fillX().row();
-        addDivider(cardInfo, dividerBg);
+        labelUserValue = new Label(textOrDash(currentUser != null ? currentUser.getUsuario() : null), valueStyle);
+        Table userRow = keyValueRowWithLabel("Usuario", labelUserValue, keyStyle);
+        ImageButton editUserButton = new ImageButton(editButtonStyle);
+        editUserButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent e, float x, float y) {
+                onEditUsuario();
+            }
+        });
+        userRow.add(editUserButton).size(32f, 32f).padLeft(8f);
+        accountCard.add(userRow).expandX().fillX().row();
+        addDivider(accountCard, dividerBackgroundDrawable);
 
-        lblPassVal = new Label(mask(u != null ? u.getContrasena() : null), valStyle);
-        Table rPass = kvRowWithValue("Contrasena", lblPassVal, keyStyle);
-        ImageButton btnEditPass = new ImageButton(editStyle);
-        btnEditPass.addListener(new ClickListener() { @Override public void clicked(InputEvent e,float x,float y){ onEditPass(); }});
-        rPass.add(btnEditPass).size(32f, 32f).padLeft(8f);
-        cardInfo.add(rPass).expandX().fillX().row();
-        addDivider(cardInfo, dividerBg);
+        labelPasswordValue = new Label(mask(currentUser != null ? currentUser.getContrasena() : null), valueStyle);
+        Table passwordRow = keyValueRowWithLabel("Contrasena", labelPasswordValue, keyStyle);
+        ImageButton editPasswordButton = new ImageButton(editButtonStyle);
+        editPasswordButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent e, float x, float y) {
+                onEditPass();
+            }
+        });
+        passwordRow.add(editPasswordButton).size(32f, 32f).padLeft(8f);
+        accountCard.add(passwordRow).expandX().fillX().row();
+        addDivider(accountCard, dividerBackgroundDrawable);
 
-        int totalSeg = (u != null) ? u.getTiempoJugadoTotal() : 0;
-        String totalFmt = formatSecondsHuman(totalSeg) + "   (" + (totalSeg/60) + " min)";
-        cardInfo.add(kvRow("Tiempo total de juego", totalFmt, keyStyle, valStyle)).expandX().fillX().row();
-        addDivider(cardInfo, dividerBg);
+        int totalSecondsPlayed = (currentUser != null) ? currentUser.getTiempoJugadoTotal() : 0;
+        String totalTimeFormatted = formatSecondsHuman(totalSecondsPlayed) + "   (" + (totalSecondsPlayed / 60) + " min)";
+        accountCard.add(keyValueRow("Tiempo total de juego", totalTimeFormatted, keyStyle, valueStyle)).expandX().fillX().row();
+        addDivider(accountCard, dividerBackgroundDrawable);
 
-        int partidasJugadas = 0;
-        if (u != null && u.historial != null) partidasJugadas = u.historial.size();
-        cardInfo.add(kvRow("Total partidas jugadas", String.valueOf(partidasJugadas), keyStyle, valStyle)).expandX().fillX().row();
+        int totalMatches = 0;
+        if (currentUser != null && currentUser.historial != null) {
+            totalMatches = currentUser.historial.size();
+        }
+        accountCard.add(keyValueRow("Total partidas jugadas", String.valueOf(totalMatches), keyStyle, valueStyle)).expandX().fillX().row();
 
-        content.add(cardInfo).expandX().fillX().row();
+        content.add(accountCard).expandX().fillX().row();
 
-        content.add(cardHeader("Mis Estadisticas", h2Style)).expandX().fillX().padTop(12f).row();
+        // Card: estadísticas
+        content.add(cardHeader("Mis Estadisticas", subtitleStyle)).expandX().fillX().padTop(12f).row();
 
-        Table cardProg = new Table();
-        cardProg.setBackground(panelBg);
-        cardProg.pad(14f);
-        cardProg.defaults().left().pad(6f);
+        Table statsCard = new Table();
+        statsCard.setBackground(panelBackgroundDrawable);
+        statsCard.pad(14f);
+        statsCard.defaults().left().pad(6f);
 
-        Table header = new Table();
-        header.defaults().left().pad(6f);
+        Table statsHeader = new Table();
+        statsHeader.defaults().left().pad(6f);
 
-        header.add(new Label("Nivel", thStyle)).width(120f);
-        header.add(new Label("Estado", thStyle)).width(200f);
-        header.add(new Label("Partidas", thStyle)).width(120f);
-        header.add(new Label("Tiempo promedio", thStyle)).width(200f);
-        header.add(new Label("Victoria record", bigStyle)).colspan(3).center().padBottom(4f).row();
+        statsHeader.add(new Label("Nivel", tableHeadStyle)).width(120f);
+        statsHeader.add(new Label("Estado", tableHeadStyle)).width(200f);
+        statsHeader.add(new Label("Partidas", tableHeadStyle)).width(120f);
+        statsHeader.add(new Label("Tiempo promedio", tableHeadStyle)).width(200f);
+        statsHeader.add(new Label("Victoria record", largeValueStyle)).colspan(3).center().padBottom(4f).row();
 
-        header.add().width(120f);
-        header.add().width(200f);
-        header.add().width(120f);
-        header.add().width(200f);
-        header.add(new Label("Pasos", thStyle)).width(220f);
-        header.add(new Label("Empujes", thStyle)).width(140f);
-        header.add(new Label("Tiempo", thStyle)).width(180f).row();
+        statsHeader.add().width(120f);
+        statsHeader.add().width(200f);
+        statsHeader.add().width(120f);
+        statsHeader.add().width(200f);
+        statsHeader.add(new Label("Pasos", tableHeadStyle)).width(220f);
+        statsHeader.add(new Label("Empujes", tableHeadStyle)).width(140f);
+        statsHeader.add(new Label("Tiempo", tableHeadStyle)).width(180f).row();
 
-        cardProg.add(header).expandX().fillX().row();
+        statsCard.add(statsHeader).expandX().fillX().row();
 
-        for (int n = 1; n <= 7; n++) {
-            boolean completo = (u != null) && u.getNivelCompletado(n);
-            int promedio = 0;
+        for (int level = 1; level <= 7; level++) {
+            boolean completed = (currentUser != null) && currentUser.getNivelCompletado(level);
+            int averageSeconds = 0;
             int bestSteps = 0;
-            int bestEmpujes = 0;
+            int bestPushes = 0;
             int bestTimeOfBestAttempt = 0;
-            int partidasNivel = 0;
-            if (u != null) {
-                try { promedio = u.getTiempoPromedioNivel(n); } catch (Throwable ignored) {}
-                try { bestSteps = u.getMayorPuntuacion(n); } catch (Throwable ignored) {}
-                try { bestEmpujes = u.getEmpujesNivel(n); } catch (Throwable ignored) {}
-                try { bestTimeOfBestAttempt = u.getTiempoMejorIntento(n); } catch (Throwable ignored) {}
-                try { partidasNivel = u.getPartidasPorNivel(n); } catch (Throwable ignored) {}
+            int matchesOnLevel = 0;
+            if (currentUser != null) {
+                try {
+                    averageSeconds = currentUser.getTiempoPromedioNivel(level);
+                } catch (Throwable ignored) {
+                }
+                try {
+                    bestSteps = currentUser.getMayorPuntuacion(level);
+                } catch (Throwable ignored) {
+                }
+                try {
+                    bestPushes = currentUser.getEmpujesNivel(level);
+                } catch (Throwable ignored) {
+                }
+                try {
+                    bestTimeOfBestAttempt = currentUser.getTiempoMejorIntento(level);
+                } catch (Throwable ignored) {
+                }
+                try {
+                    matchesOnLevel = currentUser.getPartidasPorNivel(level);
+                } catch (Throwable ignored) {
+                }
             }
 
-            String partidasTxt  = (partidasNivel > 0) ? String.valueOf(partidasNivel) : "-";
-            String promedioTxt  = (promedio > 0) ? formatSecondsHuman(promedio) : "-";
-            String bestStepsTxt = (bestSteps > 0) ? (bestSteps + " pasos") : "-";
-            String bestPushTxt  = (bestEmpujes > 0) ? String.valueOf(bestEmpujes) : "-";
-            String bestTimeTxt  = (bestTimeOfBestAttempt > 0) ? formatSecondsHuman(bestTimeOfBestAttempt) : "-";
+            String matchesText = (matchesOnLevel > 0) ? String.valueOf(matchesOnLevel) : "-";
+            String averageText = (averageSeconds > 0) ? formatSecondsHuman(averageSeconds) : "-";
+            String bestStepsText = (bestSteps > 0) ? (bestSteps + " pasos") : "-";
+            String bestPushesText = (bestPushes > 0) ? String.valueOf(bestPushes) : "-";
+            String bestTimeText = (bestTimeOfBestAttempt > 0) ? formatSecondsHuman(bestTimeOfBestAttempt) : "-";
 
-            Table row = new Table();
-            row.defaults().left().pad(6f);
-            row.add(new Label("Nivel " + n, cellStyle)).width(120f);
-            row.add(new Label(completo ? "Completado" : "Sin completar", cellStyle)).width(200f);
-            row.add(new Label(partidasTxt, cellStyle)).width(120f);
-            row.add(new Label(promedioTxt, cellStyle)).width(200f);
-            row.add(new Label(bestStepsTxt, cellStyle)).width(220f);
-            row.add(new Label(bestPushTxt, cellStyle)).width(140f);
-            row.add(new Label(bestTimeTxt, cellStyle)).width(180f).row();
+            Table statsRow = new Table();
+            statsRow.defaults().left().pad(6f);
+            statsRow.add(new Label("Nivel " + level, cellStyle)).width(120f);
+            statsRow.add(new Label(completed ? "Completado" : "Sin completar", cellStyle)).width(200f);
+            statsRow.add(new Label(matchesText, cellStyle)).width(120f);
+            statsRow.add(new Label(averageText, cellStyle)).width(200f);
+            statsRow.add(new Label(bestStepsText, cellStyle)).width(220f);
+            statsRow.add(new Label(bestPushesText, cellStyle)).width(140f);
+            statsRow.add(new Label(bestTimeText, cellStyle)).width(180f).row();
 
-            cardProg.add(row).expandX().fillX().row();
+            statsCard.add(statsRow).expandX().fillX().row();
 
-            if (n < 7) {
-                Image div = new Image(dividerBg);
-                cardProg.add(div).height(1f).expandX().fillX().padTop(2f).padBottom(2f).row();
+            if (level < 7) {
+                Image divider = new Image(dividerBackgroundDrawable);
+                statsCard.add(divider).height(1f).expandX().fillX().padTop(2f).padBottom(2f).row();
             }
         }
 
-        Label hint = new Label("", hintStyle);
-        hint.setColor(new Color(1,1,1,0.55f));
-        cardProg.add(hint).left().padTop(8f).row();
+        Label statsHint = new Label("", hintStyle);
+        statsHint.setColor(new Color(1, 1, 1, 0.55f));
+        statsCard.add(statsHint).left().padTop(8f).row();
 
-        content.add(cardProg).expandX().fillX().row();
+        content.add(statsCard).expandX().fillX().row();
 
-        dlgBgTex  = makeColorTex(0,0,0,200);
-        tfBgTex   = makeColorTex(0,0,0,150);
-        tfSelTex  = makeColorTex(255,255,255,80);
-        tfCurTex  = makeColorTex(255,255,255,255);
-        btnClearTex = makeColorTex(0,0,0,0);
+        // Recursos de diálogo/inputs
+        dialogBackgroundTexture = makeColorTexture(0, 0, 0, 200);
+        textfieldBackgroundTexture = makeColorTexture(0, 0, 0, 150);
+        textfieldSelectionTexture = makeColorTexture(255, 255, 255, 80);
+        textfieldCursorTexture = makeColorTexture(255, 255, 255, 255);
+        buttonClearTexture = makeColorTexture(0, 0, 0, 0);
 
-        dlgBgDr  = new TextureRegionDrawable(new TextureRegion(dlgBgTex));
-        tfBgDr   = new TextureRegionDrawable(new TextureRegion(tfBgTex));
-        tfSelDr  = new TextureRegionDrawable(new TextureRegion(tfSelTex));
-        tfCurDr  = new TextureRegionDrawable(new TextureRegion(tfCurTex));
-        btnClearDr = new TextureRegionDrawable(new TextureRegion(btnClearTex));
+        dialogBackgroundDrawable = new TextureRegionDrawable(new TextureRegion(dialogBackgroundTexture));
+        textfieldBackgroundDrawable = new TextureRegionDrawable(new TextureRegion(textfieldBackgroundTexture));
+        textfieldSelectionDrawable = new TextureRegionDrawable(new TextureRegion(textfieldSelectionTexture));
+        textfieldCursorDrawable = new TextureRegionDrawable(new TextureRegion(textfieldCursorTexture));
+        buttonClearDrawable = new TextureRegionDrawable(new TextureRegion(buttonClearTexture));
 
-        winStyleCached = new Window.WindowStyle();
-        winStyleCached.titleFont = bodyFont;
-        winStyleCached.titleFontColor = Color.WHITE;
-        winStyleCached.background = dlgBgDr;
+        cachedWindowStyle = new Window.WindowStyle();
+        cachedWindowStyle.titleFont = bodyFont;
+        cachedWindowStyle.titleFontColor = Color.WHITE;
+        cachedWindowStyle.background = dialogBackgroundDrawable;
 
-        tfStyleCached = new TextField.TextFieldStyle();
-        tfStyleCached.font = bodyFont;
-        tfStyleCached.fontColor = Color.WHITE;
-        tfStyleCached.background = tfBgDr;
-        tfStyleCached.selection = tfSelDr;
-        tfStyleCached.cursor = tfCurDr;
+        cachedTextFieldStyle = new TextField.TextFieldStyle();
+        cachedTextFieldStyle.font = bodyFont;
+        cachedTextFieldStyle.fontColor = Color.WHITE;
+        cachedTextFieldStyle.background = textfieldBackgroundDrawable;
+        cachedTextFieldStyle.selection = textfieldSelectionDrawable;
+        cachedTextFieldStyle.cursor = textfieldCursorDrawable;
 
-        btnStyleCached = new TextButton.TextButtonStyle();
-        btnStyleCached.font = bodyFont;
-        btnStyleCached.fontColor = Color.WHITE;
-        btnStyleCached.overFontColor = Color.WHITE;
-        btnStyleCached.downFontColor = Color.WHITE;
-        btnStyleCached.checkedFontColor = Color.WHITE;
-        btnStyleCached.disabledFontColor = Color.WHITE;
-        btnStyleCached.up = btnClearDr; btnStyleCached.down = btnClearDr; btnStyleCached.over = btnClearDr;
-        btnStyleCached.checked = btnClearDr; btnStyleCached.disabled = btnClearDr;
+        cachedTextButtonStyle = new TextButton.TextButtonStyle();
+        cachedTextButtonStyle.font = bodyFont;
+        cachedTextButtonStyle.fontColor = Color.WHITE;
+        cachedTextButtonStyle.overFontColor = Color.WHITE;
+        cachedTextButtonStyle.downFontColor = Color.WHITE;
+        cachedTextButtonStyle.checkedFontColor = Color.WHITE;
+        cachedTextButtonStyle.disabledFontColor = Color.WHITE;
+        cachedTextButtonStyle.up = buttonClearDrawable;
+        cachedTextButtonStyle.down = buttonClearDrawable;
+        cachedTextButtonStyle.over = buttonClearDrawable;
+        cachedTextButtonStyle.checked = buttonClearDrawable;
+        cachedTextButtonStyle.disabled = buttonClearDrawable;
     }
 
     private void onChangeAvatar() {
-        final String[] selected = new String[1];
+        final String[] selectedPath = new String[1];
         try {
             SwingUtilities.invokeAndWait(() -> {
-                JFileChooser ch = new JFileChooser();
-                ch.setDialogTitle("Seleccionar imagen de avatar");
-                FileNameExtensionFilter filter = new FileNameExtensionFilter("Imagenes (png, jpg, jpeg, gif)", "png","jpg","jpeg","gif");
-                ch.setFileFilter(filter);
-                ch.setAcceptAllFileFilterUsed(false);
-                int res = ch.showOpenDialog(null);
-                if (res == JFileChooser.APPROVE_OPTION) selected[0] = ch.getSelectedFile().getAbsolutePath();
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setDialogTitle("Seleccionar imagen de avatar");
+                FileNameExtensionFilter filter = new FileNameExtensionFilter("Imagenes (png, jpg, jpeg, gif)", "png", "jpg", "jpeg", "gif");
+                fileChooser.setFileFilter(filter);
+                fileChooser.setAcceptAllFileFilterUsed(false);
+                int result = fileChooser.showOpenDialog(null);
+                if (result == JFileChooser.APPROVE_OPTION) {
+                    selectedPath[0] = fileChooser.getSelectedFile().getAbsolutePath();
+                }
             });
-        } catch (Exception ignored) {}
-        if (selected[0] == null || selected[0].trim().isEmpty()) return;
-        Usuario u = ManejoUsuarios.UsuarioActivo;
-        if (u != null) { u.setAvatar(selected[0]); reloadAvatar(); }
+        } catch (Exception ignored) {
+        }
+        if (selectedPath[0] == null || selectedPath[0].trim().isEmpty()) {
+            return;
+        }
+        Usuario user = ManejoUsuarios.UsuarioActivo;
+        if (user != null) {
+            user.setAvatar(selectedPath[0]);
+            reloadAvatar();
+        }
     }
 
     private void reloadAvatar() {
-        if (avatarTex != null) { avatarTex.dispose(); avatarTex = null; }
-        String path = "ui/default_avatar.png";
-        Usuario u = ManejoUsuarios.UsuarioActivo;
-        if (u != null && u.avatar != null && !u.avatar.trim().isEmpty()) {
-            if (files.internal(u.avatar).exists()) avatarTex = new Texture(files.internal(u.avatar));
-            else if (files.absolute(u.avatar).exists()) avatarTex = new Texture(files.absolute(u.avatar));
+        if (avatarTexture != null) {
+            avatarTexture.dispose();
+            avatarTexture = null;
         }
-        if (avatarTex == null) avatarTex = new Texture(files.internal(path));
-        if (avatarImg != null) {
-            avatarImg.setDrawable(new TextureRegionDrawable(new TextureRegion(avatarTex)));
-            avatarImg.invalidateHierarchy();
+        String defaultAvatarPath = "ui/default_avatar.png";
+        Usuario user = ManejoUsuarios.UsuarioActivo;
+        if (user != null && user.avatar != null && !user.avatar.trim().isEmpty()) {
+            if (files.internal(user.avatar).exists()) {
+                avatarTexture = new Texture(files.internal(user.avatar));
+            } else if (files.absolute(user.avatar).exists()) {
+                avatarTexture = new Texture(files.absolute(user.avatar));
+            }
+        }
+        if (avatarTexture == null) {
+            avatarTexture = new Texture(files.internal(defaultAvatarPath));
+        }
+        if (avatarImage != null) {
+            avatarImage.setDrawable(new TextureRegionDrawable(new TextureRegion(avatarTexture)));
+            avatarImage.invalidateHierarchy();
         }
     }
 
-    private boolean isAlnum(String s){ return s != null && s.matches("[A-Za-z0-9]+"); }
+    private boolean isAlnum(String s) {
+        return s != null && s.matches("[A-Za-z0-9]+");
+    }
 
     private void onEditUsuario() {
-        final Dialog dlg = new Dialog("Editar usuario", winStyleCached);
-        Table c = dlg.getContentTable(); c.pad(16f); c.defaults().pad(6f).fillX();
+        final Dialog dialog = new Dialog("Editar usuario", cachedWindowStyle);
+        Table content = dialog.getContentTable();
+        content.pad(16f);
+        content.defaults().pad(6f).fillX();
 
-        Label l = new Label("Nuevo usuario :", new Label.LabelStyle(bodyFont, Color.WHITE));
-        final TextField tf = new TextField("", tfStyleCached);
-        final Label err  = new Label("", new Label.LabelStyle(smallFont, Color.SALMON));
+        Label prompt = new Label("Nuevo usuario :", new Label.LabelStyle(bodyFont, Color.WHITE));
+        final TextField input = new TextField("", cachedTextFieldStyle);
+        final Label error = new Label("", new Label.LabelStyle(smallFont, Color.SALMON));
 
-        c.add(l).left().row();
-        c.add(tf).width(380f).row();
-        c.add(err).left().row();
+        content.add(prompt).left().row();
+        content.add(input).width(380f).row();
+        content.add(error).left().row();
 
-        TextButton cancel = new TextButton("Cancelar", btnStyleCached);
-        TextButton ok     = new TextButton("Guardar",  btnStyleCached);
+        TextButton cancel = new TextButton(Lang.dlgCancel(), cachedTextButtonStyle);
+        TextButton ok = new TextButton(Lang.saveChanges(), cachedTextButtonStyle);
 
-        cancel.addListener(new ClickListener(){ @Override public void clicked(InputEvent e,float x,float y){ dlg.hide(); }});
-        ok.addListener(new ClickListener(){
-            @Override public void clicked(InputEvent e,float x,float y){
-                Usuario u = ManejoUsuarios.UsuarioActivo;
-                String actual = (u != null) ? u.getUsuario() : "";
-                String v = tf.getText().trim();
+        cancel.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent e, float x, float y) {
+                dialog.hide();
+            }
+        });
+        ok.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent e, float x, float y) {
+                Usuario user = ManejoUsuarios.UsuarioActivo;
+                String current = (user != null) ? user.getUsuario() : "";
+                String value = input.getText().trim();
 
-                // Validaciones
-                if (!isAlnum(v)) { err.setText(Lang.errOnlyAlnum()); return; }
-                if (v.equalsIgnoreCase(actual)) { err.setText(Lang.errUserExists()); return; } // tratar mismo nombre como conflicto
-                String existente = ManejoArchivos.buscarUsuario(v);
-                if (existente != null) {
-                    // YA existe carpeta/usuario con ese nombre
-                    err.setText(Lang.errUserExists());
+                if (!isAlnum(value)) {
+                    error.setText(Lang.errOnlyAlnum());
+                    return;
+                }
+                if (value.equalsIgnoreCase(current)) {
+                    error.setText(Lang.errUserExists());
+                    return;
+                }
+                String existing = ManejoArchivos.buscarUsuario(value);
+                if (existing != null) {
+                    error.setText(Lang.errUserExists());
                     return;
                 }
 
-                // Si pasa validaciones, actualiza el modelo y la UI (no renombra carpetas/archivos aquí)
-                if (u != null) { u.setUsuario(v); lblUsuarioVal.setText(v); }
-                dlg.hide();
+                if (user != null) {
+                    user.setUsuario(value);
+                    labelUserValue.setText(value);
+                }
+                dialog.hide();
             }
         });
 
-        dlg.getButtonTable().pad(0,16f,16f,16f).defaults().width(140f).pad(6f);
-        dlg.getButtonTable().add(cancel);
-        dlg.getButtonTable().add(ok);
+        dialog.getButtonTable().pad(0, 16f, 16f, 16f).defaults().width(140f).pad(6f);
+        dialog.getButtonTable().add(cancel);
+        dialog.getButtonTable().add(ok);
 
-        showDialog(dlg, tf);
+        showDialog(dialog, input);
     }
 
     private void onEditPass() {
-        final Dialog dlg = new Dialog("Editar contrasena", winStyleCached);
-        Table c = dlg.getContentTable(); c.pad(16f); c.defaults().pad(6f).fillX();
+        final Dialog dialog = new Dialog("Editar contrasena", cachedWindowStyle);
+        Table content = dialog.getContentTable();
+        content.pad(16f);
+        content.defaults().pad(6f).fillX();
 
-        Label l1 = new Label("Nueva contrasena :", new Label.LabelStyle(bodyFont, Color.WHITE));
-        Label l2 = new Label("Confirmar:", new Label.LabelStyle(bodyFont, Color.WHITE));
-        final TextField tf1 = new TextField("", tfStyleCached);
-        final TextField tf2 = new TextField("", tfStyleCached);
-        tf1.setPasswordMode(true); tf1.setPasswordCharacter('*');
-        tf2.setPasswordMode(true); tf2.setPasswordCharacter('*');
-        final Label err  = new Label("", new Label.LabelStyle(smallFont, Color.SALMON));
+        Label prompt1 = new Label("Nueva contrasena :", new Label.LabelStyle(bodyFont, Color.WHITE));
+        Label prompt2 = new Label("Confirmar:", new Label.LabelStyle(bodyFont, Color.WHITE));
+        final TextField input1 = new TextField("", cachedTextFieldStyle);
+        final TextField input2 = new TextField("", cachedTextFieldStyle);
+        input1.setPasswordMode(true);
+        input1.setPasswordCharacter('*');
+        input2.setPasswordMode(true);
+        input2.setPasswordCharacter('*');
+        final Label error = new Label("", new Label.LabelStyle(smallFont, Color.SALMON));
 
-        c.add(l1).left().row();
-        c.add(tf1).width(380f).row();
-        c.add(l2).left().row();
-        c.add(tf2).width(380f).row();
-        c.add(err).left().row();
+        content.add(prompt1).left().row();
+        content.add(input1).width(380f).row();
+        content.add(prompt2).left().row();
+        content.add(input2).width(380f).row();
+        content.add(error).left().row();
 
-        TextButton cancel = new TextButton("Cancelar", btnStyleCached);
-        TextButton ok     = new TextButton("Guardar",  btnStyleCached);
+        TextButton cancel = new TextButton(Lang.dlgCancel(), cachedTextButtonStyle);
+        TextButton ok = new TextButton(Lang.saveChanges(), cachedTextButtonStyle);
 
-        cancel.addListener(new ClickListener(){ @Override public void clicked(InputEvent e,float x,float y){ dlg.hide(); }});
-        ok.addListener(new ClickListener(){
-            @Override public void clicked(InputEvent e,float x,float y){
-                String p1 = tf1.getText().trim();
-                String p2 = tf2.getText().trim();
-                if (!isAlnum(p1) || !isAlnum(p2)) { err.setText(Lang.errOnlyAlnum()); return; }
-                if (!p1.equals(p2)) { err.setText(Lang.errPasswordMismatch()); return; } // usa tu clave de Lang para "No coincide."
-                Usuario u = ManejoUsuarios.UsuarioActivo;
-                if (u != null) { u.setContrasena(p1); lblPassVal.setText(mask(p1)); }
-                dlg.hide();
+        cancel.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent e, float x, float y) {
+                dialog.hide();
+            }
+        });
+        ok.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent e, float x, float y) {
+                String p1 = input1.getText().trim();
+                String p2 = input2.getText().trim();
+                if (!isAlnum(p1) || !isAlnum(p2)) {
+                    error.setText(Lang.errOnlyAlnum());
+                    return;
+                }
+                if (!p1.equals(p2)) {
+                    error.setText(Lang.errPasswordMismatch());
+                    return;
+                }
+                Usuario user = ManejoUsuarios.UsuarioActivo;
+                if (user != null) {
+                    user.setContrasena(p1);
+                    labelPasswordValue.setText(mask(p1));
+                }
+                dialog.hide();
             }
         });
 
-        dlg.getButtonTable().pad(0,16f,16f,16f).defaults().width(140f).pad(6f);
-        dlg.getButtonTable().add(cancel);
-        dlg.getButtonTable().add(ok);
+        dialog.getButtonTable().pad(0, 16f, 16f, 16f).defaults().width(140f).pad(6f);
+        dialog.getButtonTable().add(cancel);
+        dialog.getButtonTable().add(ok);
 
-        showDialog(dlg, tf1);
+        showDialog(dialog, input1);
     }
 
-    private void showDialog(Dialog dlg, Actor focus) {
-        dlg.setColor(Color.WHITE);
-        dlg.show(stage);
-        dlg.toFront();
-        dlg.invalidateHierarchy();
-        dlg.pack();
-        if (focus != null) stage.setKeyboardFocus(focus);
+    private void showDialog(Dialog dialog, Actor focus) {
+        dialog.setColor(Color.WHITE);
+        dialog.show(stage);
+        dialog.toFront();
+        dialog.invalidateHierarchy();
+        dialog.pack();
+        if (focus != null) {
+            stage.setKeyboardFocus(focus);
+        }
         stage.setScrollFocus(null);
-        forceWhiteText(dlg);
+        forceWhiteText(dialog);
     }
 
-    private void forceWhiteText(Actor a) {
-        if (a instanceof Label) ((Label)a).setColor(Color.WHITE);
-        if (a instanceof TextButton) ((TextButton)a).getLabel().setColor(Color.WHITE);
-        if (a instanceof Group) for (Actor ch : ((Group)a).getChildren()) forceWhiteText(ch);
+    private void forceWhiteText(Actor actor) {
+        if (actor instanceof Label) {
+            ((Label) actor).setColor(Color.WHITE);
+        }
+        if (actor instanceof TextButton) {
+            ((TextButton) actor).getLabel().setColor(Color.WHITE);
+        }
+        if (actor instanceof Group) {
+            for (Actor child : ((Group) actor).getChildren()) {
+                forceWhiteText(child);
+            }
+        }
     }
 
-    private BitmapFont genFont(int size, String hex) {
-        FreeTypeFontGenerator.FreeTypeFontParameter p = new FreeTypeFontGenerator.FreeTypeFontParameter();
-        p.size = size; p.color = Color.valueOf(hex);
-        return generator.generateFont(p);
+    private BitmapFont generateFontWithOutline(int size, String fillHex, int borderWidth, String borderHex) {
+        FreeTypeFontGenerator.FreeTypeFontParameter params = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        params.size = size;
+        params.color = Color.valueOf(fillHex);
+        params.borderWidth = borderWidth;
+        params.borderColor = Color.valueOf(borderHex);
+        return fontGenerator.generateFont(params);
     }
 
-    private Texture makeColorTex(int r, int g, int b, int a) {
-        Pixmap pm = new Pixmap(2, 2, Pixmap.Format.RGBA8888);
-        pm.setColor(r/255f, g/255f, b/255f, a/255f);
-        pm.fill();
-        Texture t = new Texture(pm); pm.dispose();
-        return t;
+    private Texture makeColorTexture(int r, int g, int b, int a) {
+        Pixmap pixmap = new Pixmap(2, 2, Pixmap.Format.RGBA8888);
+        pixmap.setColor(r / 255f, g / 255f, b / 255f, a / 255f);
+        pixmap.fill();
+        Texture texture = new Texture(pixmap);
+        pixmap.dispose();
+        return texture;
     }
 
     private Table cardHeader(String text, Label.LabelStyle style) {
-        Table t = new Table();
-        t.defaults().left();
-        t.add(new Label(text, style)).left();
-        return t;
+        Table table = new Table();
+        table.defaults().left();
+        table.add(new Label(text, style)).left();
+        return table;
     }
 
     private void addDivider(Table table, TextureRegionDrawable dividerBg) {
-        Image div = new Image(dividerBg);
-        table.add(div).height(1f).expandX().fillX().padTop(2f).padBottom(2f).row();
+        Image divider = new Image(dividerBg);
+        table.add(divider).height(1f).expandX().fillX().padTop(2f).padBottom(2f).row();
     }
 
-    private Table kvRow(String key, String value, Label.LabelStyle keyStyle, Label.LabelStyle valStyle) {
+    private Table keyValueRow(String key, String value, Label.LabelStyle keyStyle, Label.LabelStyle valueStyle) {
         Table row = new Table();
         row.defaults().left().pad(6f);
         row.add(new Label(key + ":", keyStyle)).width(300f).left().padRight(24f);
-        Label v = new Label(value == null || value.isEmpty() ? "-" : value, valStyle);
-        row.add(v).left().expandX().fillX();
+        Label valueLabel = new Label(value == null || value.isEmpty() ? "-" : value, valueStyle);
+        row.add(valueLabel).left().expandX().fillX();
         return row;
     }
 
-    private Table kvRowWithValue(String key, Label valueLabel, Label.LabelStyle keyStyle) {
+    private Table keyValueRowWithLabel(String key, Label valueLabel, Label.LabelStyle keyStyle) {
         Table row = new Table();
         row.defaults().left().pad(6f);
         row.add(new Label(key + ":", keyStyle)).width(300f).left().padRight(24f);
@@ -469,56 +591,117 @@ public class MiPerfilScreen extends BaseScreen {
         return row;
     }
 
-    private String textOrDash(String s){ return (s == null || s.isEmpty()) ? "-" : s; }
-
-    private String formatMillis(Long m){
-        if (m == null || m <= 0) return "-";
-        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(m));
+    private String textOrDash(String s) {
+        return (s == null || s.isEmpty()) ? "-" : s;
     }
 
-    private String formatSecondsHuman(int sec){
-        if (sec <= 0) return "0 s";
+    private String formatMillis(Long millis) {
+        if (millis == null || millis <= 0) {
+            return "-";
+        }
+        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(millis));
+        // (no se usa actualmente, lo dejo por si lo reutilizas)
+    }
+
+    private String formatSecondsHuman(int sec) {
+        if (sec <= 0) {
+            return "0 s";
+        }
         int h = sec / 3600;
         int m = (sec % 3600) / 60;
         int s = sec % 60;
-        if (h > 0) return String.format("%dh %02dmin %02ds", h, m, s);
-        if (m > 0) return String.format("%dmin %02ds", m, s);
+        if (h > 0) {
+            return String.format("%dh %02dmin %02ds", h, m, s);
+        }
+        if (m > 0) {
+            return String.format("%dmin %02ds", m, s);
+        }
         return String.format("%ds", s);
     }
 
-    private String mask(String s){
-        if (s == null || s.isEmpty()) return "-";
-        StringBuilder b = new StringBuilder();
-        for (int i = 0; i < s.length(); i++) b.append('*');
-        return b.toString();
+    private String mask(String s) {
+        if (s == null || s.isEmpty()) {
+            return "-";
+        }
+        StringBuilder out = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+            out.append('*');
+        }
+        return out.toString();
     }
 
     @Override
     public void hide() {
-        if (avatarTex != null) { avatarTex.dispose(); avatarTex = null; }
-        if (texPanelBg != null) { texPanelBg.dispose(); texPanelBg = null; }
-        if (texDivider != null) { texDivider.dispose(); texDivider = null; }
-        if (texEditIcon != null) { texEditIcon.dispose(); texEditIcon = null; }
+        if (avatarTexture != null) {
+            avatarTexture.dispose();
+            avatarTexture = null;
+        }
+        if (panelTexture != null) {
+            panelTexture.dispose();
+            panelTexture = null;
+        }
+        if (dividerTexture != null) {
+            dividerTexture.dispose();
+            dividerTexture = null;
+        }
+        if (editIconTexture != null) {
+            editIconTexture.dispose();
+            editIconTexture = null;
+        }
         super.hide();
     }
 
     @Override
     public void dispose() {
         super.dispose();
-        if (generator != null) generator.dispose();
-        if (titleFont != null) titleFont.dispose();
-        if (h2Font != null)    h2Font.dispose();
-        if (bodyFont != null)  bodyFont.dispose();
-        if (smallFont != null) smallFont.dispose();
-        if (bigFont != null)   bigFont.dispose();
-        if (avatarTex != null) { avatarTex.dispose(); avatarTex = null; }
-        if (texPanelBg != null) { texPanelBg.dispose(); texPanelBg = null; }
-        if (texDivider != null) { texDivider.dispose(); texDivider = null; }
-        if (texEditIcon != null) { texEditIcon.dispose(); texEditIcon = null; }
-        if (dlgBgTex != null) dlgBgTex.dispose();
-        if (tfBgTex  != null) tfBgTex.dispose();
-        if (tfSelTex != null) tfSelTex.dispose();
-        if (tfCurTex != null) tfCurTex.dispose();
-        if (btnClearTex != null) btnClearTex.dispose();
+        if (fontGenerator != null) {
+            fontGenerator.dispose();
+        }
+        if (titleFont != null) {
+            titleFont.dispose();
+        }
+        if (subtitleFont != null) {
+            subtitleFont.dispose();
+        }
+        if (bodyFont != null) {
+            bodyFont.dispose();
+        }
+        if (smallFont != null) {
+            smallFont.dispose();
+        }
+        if (largeFont != null) {
+            largeFont.dispose();
+        }
+        if (avatarTexture != null) {
+            avatarTexture.dispose();
+            avatarTexture = null;
+        }
+        if (panelTexture != null) {
+            panelTexture.dispose();
+            panelTexture = null;
+        }
+        if (dividerTexture != null) {
+            dividerTexture.dispose();
+            dividerTexture = null;
+        }
+        if (editIconTexture != null) {
+            editIconTexture.dispose();
+            editIconTexture = null;
+        }
+        if (dialogBackgroundTexture != null) {
+            dialogBackgroundTexture.dispose();
+        }
+        if (textfieldBackgroundTexture != null) {
+            textfieldBackgroundTexture.dispose();
+        }
+        if (textfieldSelectionTexture != null) {
+            textfieldSelectionTexture.dispose();
+        }
+        if (textfieldCursorTexture != null) {
+            textfieldCursorTexture.dispose();
+        }
+        if (buttonClearTexture != null) {
+            buttonClearTexture.dispose();
+        }
     }
 }

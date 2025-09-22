@@ -24,7 +24,6 @@ public final class Lang {
         return current;
     }
 
-    // === MENU / GENERALES ===
     public static String gameTitle() {
         return "SOKOBAN";
     }
@@ -57,7 +56,6 @@ public final class Lang {
         return (current == 2) ? "Guest" : "Invitado";
     }
 
-    // === TUTORIAL GATE ===
     public static String mustDoTutorialTitle() {
         return "Tutorial";
     }
@@ -139,7 +137,6 @@ public final class Lang {
         return (current == 2) ? "User created" : "Usuario creado";
     }
 
-    // === CONFIG ===
     public static String cfgControls() {
         return (current == 2) ? "Controls" : "Controles";
     }
@@ -191,7 +188,7 @@ public final class Lang {
     public static String cfgHintPressKey() {
         return (current == 2)
                 ? "Click a button and press a key · ESC cancels"
-                : "Clic en un botón y presiona una tecla · ESC cancela";
+                : "Clic en un boton y presiona una tecla  ESC: cancelar";
     }
 
     public static String pressAKey() {
@@ -199,7 +196,7 @@ public final class Lang {
     }
 
     public static String savedCheck() {
-        return (current == 2) ? "✅  Changes saved" : "✅  Cambios guardados";
+        return (current == 2) ? "Changes saved" : "Cambios guardados";
     }
 
     public static String langSpanish() {
@@ -210,7 +207,6 @@ public final class Lang {
         return "Ingles";
     }
 
-    // === HUD / GAME ===
     public static String hudLevel() {
         return (current == 2) ? "Level" : "Nivel";
     }
@@ -231,7 +227,6 @@ public final class Lang {
         return (current == 2) ? "Controls" : "Controles";
     }
 
-    // === VICTORY ===
     public static String victoryTutorial() {
         return (current == 2) ? "Congrats on completing the tutorial" : "Felicidades por pasarte el tutorial";
     }
@@ -257,7 +252,6 @@ public final class Lang {
                 : "[ENTER] Siguiente nivel     [ESC] Volver al selector";
     }
 
-    // === ELEVATOR ===
     public static String elevatorEnteringLevel() {
         return (current == 2) ? "Entering Level" : "Entrando al Nivel";
     }
@@ -274,7 +268,6 @@ public final class Lang {
         return (current == 2) ? "Level" : "Nivel";
     }
 
-    // === HISTORIAL ===
     public static String historyTitle() {
         return (current == 2) ? "Match History" : "Historial de Partidas";
     }
@@ -307,7 +300,6 @@ public final class Lang {
         return (current == 2) ? "Back" : "Volver";
     }
 
-    // === BASE PLAY (PAUSA / LOGS) ===
     public static String pauseTitle() {
         return (current == 2) ? "GAME PAUSED" : "JUEGO PAUSADO";
     }
@@ -329,10 +321,10 @@ public final class Lang {
     }
 
     public static String logNewBestSteps() {
-        return (current == 2) ? "New record for steps" : "Nuevo récord de pasos";
+        return (current == 2) ? "New record for steps" : "Nuevo record de pasos";
     }
 
     public static String logNewBestTime() {
-        return (current == 2) ? "New record for time" : "Nuevo récord de tiempo";
+        return (current == 2) ? "New record for time" : "Nuevo record de tiempo";
     }
 }
