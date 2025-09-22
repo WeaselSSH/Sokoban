@@ -140,7 +140,6 @@ public final class ElevatorScreen extends BasePlayScreen {
             return;
         }
 
-        // detectar si estamos frente a los botones del elevador
         nearButtons = false;
         TileMap map = game.getMap();
         int px = game.getPlayer().getX();
@@ -160,7 +159,6 @@ public final class ElevatorScreen extends BasePlayScreen {
             }
         }
 
-        // abrir selección
         if (!selecting && nearButtons && Gdx.input.isKeyJustPressed(Keys.ENTER)) {
             selecting = true;
             selectedIndex = 0;

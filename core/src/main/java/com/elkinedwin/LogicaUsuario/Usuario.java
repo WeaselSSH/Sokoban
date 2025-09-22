@@ -96,7 +96,6 @@ public class Usuario {
         }
         return bLen && bUpper && bLower && bDigit && bSymbol;
     }
-    // ============================================
 
     public void recalcularTiempoPromedio() {
         for (int i = 0; i < 7; i++) {

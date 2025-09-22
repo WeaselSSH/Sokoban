@@ -96,13 +96,11 @@ public class LoginScreen extends BaseScreen {
         if (batch != null) batch.dispose();
     }
 
-    // ======= filtros/validaciones simples (lógica común) =======
     private TextField.TextFieldFilter noCommaFilter() {
-        return (tf, c) -> c != ',';  // permite todo menos coma
+        return (tf, c) -> c != ',';
     }
     private boolean hasComma(String s){ return s != null && s.indexOf(',') >= 0; }
     private boolean notEmpty(String s){ return s != null && !s.trim().isEmpty(); }
-    // ===========================================================
 
     private void loginDialog() {
         final Dialog dialog = new Dialog(Lang.dlgLoginTitle(), skin);
@@ -199,17 +197,16 @@ public class LoginScreen extends BaseScreen {
 
         final TextField user = new TextField("", skin, skin.has("tfSmall", TextField.TextFieldStyle.class) ? "tfSmall" : "default");
         user.setMessageText(Lang.fieldUser());
-        user.setTextFieldFilter(noCommaFilter()); // símbolos y números ok, excepto coma
+        user.setTextFieldFilter(noCommaFilter());
 
         final TextField name = new TextField("", skin, skin.has("tfSmall", TextField.TextFieldStyle.class) ? "tfSmall" : "default");
         name.setMessageText(Lang.fieldName());
-        // sin filtro -> permite espacios
 
         final TextField password = new TextField("", skin, skin.has("tfSmall", TextField.TextFieldStyle.class) ? "tfSmall" : "default");
         password.setMessageText(Lang.fieldPassword());
         password.setPasswordMode(true);
         password.setPasswordCharacter('*');
-        password.setTextFieldFilter(noCommaFilter()); // símbolos y números ok, excepto coma
+        password.setTextFieldFilter(noCommaFilter());
 
         final Label error = new Label("", skin, skin.has("error", Label.LabelStyle.class) ? "error" : "default");
         if (!skin.has("error", Label.LabelStyle.class)) error.setColor(Color.SALMON);
@@ -229,13 +226,12 @@ public class LoginScreen extends BaseScreen {
         createBtn.addListener(new ClickListener() {
             @Override public void clicked(InputEvent event, float x, float y) {
                 String u = user.getText().trim();
-                String n = name.getText(); // nombre puede tener espacios
+                String n = name.getText();
                 String p = password.getText();
 
                 if (!notEmpty(u) || !notEmpty(n) || !notEmpty(p)) { error.setText(Lang.errFail()); return; }
                 if (hasComma(u) || hasComma(p)) { error.setText("No se permite la coma (,)"); return; }
 
-                // Validación de fuerza “vaga”
                 Usuario aux = new Usuario(u, n, p, System.currentTimeMillis());
                 if (!aux.passValida(p)) {
                     error.setText("No cumple los requisitos");
@@ -272,8 +268,6 @@ public class LoginScreen extends BaseScreen {
         dialog.show(stage);
         stage.setKeyboardFocus(user);
     }
-
-    // ================= SKINS =================
 
     private static Skin buildSkin(String ttfPath) {
         Skin skin = new Skin();

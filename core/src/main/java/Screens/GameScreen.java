@@ -35,14 +35,12 @@ public final class GameScreen extends BasePlayScreen {
 
         boxPlacedSound = AudioX.newSound("audios/box_placed.wav");
 
-        // Lee los controles desde UsuarioActivo.configuracion (claves como en Usuario)
         kUp = getCfgKey("MoverArriba", Input.Keys.UP);
         kDown = getCfgKey("MoverAbajo", Input.Keys.DOWN);
         kLeft = getCfgKey("MoverIzq", Input.Keys.LEFT);
         kRight = getCfgKey("MoverDer", Input.Keys.RIGHT);
         kReset = getCfgKey("Reiniciar", Input.Keys.R);
 
-        // Etiquetas legibles (localizadas ES/EN)
         sUp = keyLabel(kUp);
         sDown = keyLabel(kDown);
         sLeft = keyLabel(kLeft);

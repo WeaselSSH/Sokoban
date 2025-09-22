@@ -39,13 +39,11 @@ public class MenuScreen extends BaseScreen {
 
     @Override
     protected void onShow() {
-        // Idioma activo
         int language = (ManejoUsuarios.UsuarioActivo != null)
                 ? ManejoUsuarios.UsuarioActivo.getIdioma()
                 : 1;
         Lang.init(language);
 
-        // Fuentes con contorno usando helpers de BaseScreen
         titleFont = createOutlinedFont(136, Color.valueOf("E6DFC9"), 2, Color.BLACK);
         buttonFont = createOutlinedFont(72, Color.valueOf("E6DFC9"), 2, Color.BLACK);
 
@@ -110,7 +108,6 @@ public class MenuScreen extends BaseScreen {
             }
         });
 
-        // Layout principal
         Table root = new Table();
         root.setFillParent(true);
         stage.addActor(root);
@@ -119,13 +116,11 @@ public class MenuScreen extends BaseScreen {
         root.add(titleLabel).center().padBottom(60f).row();
         root.defaults().padTop(18f).padBottom(18f).center();
         root.add(playButton).row();
-        // tutorialButton eliminado
         root.add(settingsButton).row();
         root.add(historyButton).row();
         root.add(rankingButton).row();
         root.add(logoutButton).padTop(36f).row();
 
-        // Volumen maestro desde configuración
         int volumeConfig = 70;
         try {
             if (ManejoUsuarios.UsuarioActivo != null && ManejoUsuarios.UsuarioActivo.configuracion != null) {
@@ -138,7 +133,6 @@ public class MenuScreen extends BaseScreen {
         }
         AudioBus.setMasterVolume(volumeConfig / 100f);
 
-        // Usuario y avatar (clic para ir a MiPerfil)
         Usuario user = ManejoUsuarios.UsuarioActivo;
         String username = (user != null && user.getUsuario() != null) ? user.getUsuario() : Lang.guest();
 

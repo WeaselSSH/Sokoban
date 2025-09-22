@@ -2,7 +2,6 @@ package Screens;
 
 import GameLogic.Lang;
 import com.badlogic.gdx.Game;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -185,7 +184,6 @@ public class ConfigScreen extends BaseScreen {
         Table content = new Table();
         content.pad(20f, 24f, 20f, 24f);
 
-        // Card: CONTROLS
         Table cardControls = makeCard();
         Label labelControlsTitle = new Label(Lang.cfgControls(), skin, "section");
         labelControlsTitle.setFontScale(1.12f);
@@ -208,7 +206,6 @@ public class ConfigScreen extends BaseScreen {
         cardControls.add(controlsGrid).growX();
         content.add(cardControls).growX().padBottom(14f).row();
 
-        // Card: AUDIO
         Table cardAudio = makeCard();
         Label labelAudioTitle = new Label(Lang.cfgAudio(), skin, "section");
         labelAudioTitle.setFontScale(1.12f);
@@ -221,7 +218,6 @@ public class ConfigScreen extends BaseScreen {
         cardAudio.add(audioRow).growX();
         content.add(cardAudio).growX().padBottom(14f).row();
 
-        // Card: LANGUAGE
         Table cardLanguage = makeCard();
         cardLanguage.add(labelLanguageTitle).left().padBottom(8f).row();
         Table languageRow = new Table();
@@ -231,7 +227,6 @@ public class ConfigScreen extends BaseScreen {
         cardLanguage.add(languageRow).growX();
         content.add(cardLanguage).growX().padBottom(10f).row();
 
-        // Footer buttons
         Table footerButtons = new Table();
         footerButtons.defaults().pad(10f).width(240f).height(52f);
         footerButtons.add(buttonBack);
@@ -248,7 +243,6 @@ public class ConfigScreen extends BaseScreen {
         frame.add(scroller).width(CONTENT_MAX_WIDTH).growY().top();
         stage.addActor(frame);
 
-        // Key capture
         stage.addListener(new InputListener() {
             @Override
             public boolean keyDown(InputEvent event, int keycode) {
@@ -395,7 +389,6 @@ public class ConfigScreen extends BaseScreen {
     private Skin buildSkin() {
         Skin s = new Skin();
 
-        // Fuentes con contorno centralizadas (desde BaseScreen)
         BitmapFont baseFont = createOutlinedFont(36, new Color(1, 1, 1, 0.94f), 2, Color.BLACK);
         BitmapFont smallFont = createOutlinedFont(30, new Color(1, 1, 1, 0.86f), 2, Color.BLACK);
         BitmapFont sectionFont = createOutlinedFont(38, new Color(1, 1, 1, 0.92f), 2, Color.BLACK);

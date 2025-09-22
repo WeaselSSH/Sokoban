@@ -80,7 +80,6 @@ public abstract class BaseScreen implements Screen {
 
     protected BitmapFont createOutlinedFont(int sizePx, Color fillColor, int borderWidthPx, Color borderColor) {
         if (sharedFontGenerator == null) {
-            // Fallback sin TTF
             BitmapFont fallback = new BitmapFont();
             fallback.setColor(fillColor);
             return fallback;

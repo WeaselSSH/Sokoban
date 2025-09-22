@@ -109,15 +109,13 @@ public abstract class BasePlayScreen implements Screen {
 
     private long runStartMillis = 0L;
     private String startDateStr = null;
-    private int restartCount = 0;          // cuenta de intentos (inicia en 1)
+    private int restartCount = 0;
     private boolean historyRecorded = false;
 
-    // Músicas y métricas de victoria
     private Music victoryMusic = null;
     private int victoryMoves, victoryPushes, victorySeconds;
 
-    // ====== Parámetros de logros (tuneables) ======
-    private static final int NO_ME_RINDO_UMBRAL = 20; // reinicios o más
+    private static final int NO_ME_RINDO_UMBRAL = 20;
 
     public BasePlayScreen(Game app, int level) {
         this.app = app;
@@ -154,7 +152,6 @@ public abstract class BasePlayScreen implements Screen {
 
         loadCommonAssets();
 
-        // ====== UI de pausa (solo textos dependen de idioma, lógica intacta) ======
         pauseStage = new Stage(viewport);
         Label.LabelStyle pauseStyle = new Label.LabelStyle(font, Color.WHITE);
 
@@ -186,14 +183,12 @@ public abstract class BasePlayScreen implements Screen {
         pausePanel = new Table();
         pausePanel.pad(24f);
         pausePanel.defaults().pad(8f);
-
-        // Asignamos teclas antes de mostrar el mensaje
+        
         kPause = getCfgKey("Pausar", Input.Keys.ESCAPE);
         sPause = Input.Keys.toString(kPause);
 
-        // Textos de pausa según idioma del usuario
         String tituloPausa, reanudarTexto, salirTexto;
-        int idioma = 1; // 1=ES, 2=EN
+        int idioma = 1;
         try {
             Usuario u = ManejoUsuarios.UsuarioActivo;
             if (u != null) {
@@ -234,11 +229,10 @@ public abstract class BasePlayScreen implements Screen {
         pauseStage.addActor(pauseRoot);
         pauseRoot.setVisible(false);
 
-        // ====== Inicio de carrera ======
         historyRecorded = false;
         runStartMillis = System.currentTimeMillis();
         startDateStr = formatDate(runStartMillis);
-        restartCount = 1; // primer intento
+        restartCount = 1;
         timeChronometer = 0f;
 
         onShowExtra();
@@ -258,7 +252,6 @@ public abstract class BasePlayScreen implements Screen {
         drawPlayer();
         onDrawHUD();
 
-        // -------- HUD extra para el tutorial: hint de pausa (ES/EN) --------
         if (level == 0) {
             int idioma = 1; // 1=ES, 2=EN
             try {
@@ -272,10 +265,8 @@ public abstract class BasePlayScreen implements Screen {
             String pauseHint = (idioma == 2)
                     ? "[" + sPause + "] Pause"
                     : "[" + sPause + "] Pausa";
-            // Lo dibujo abajo a la izquierda, un poco encima del borde
             font.draw(batch, pauseHint, 6, 24);
         }
-        // -------------------------------------------------------------------
 
         batch.end();
 
@@ -304,7 +295,6 @@ public abstract class BasePlayScreen implements Screen {
         submitLevelSessionTime();
         if (isGameplayLevel() && !historyRecorded) {
             int elapsedSec = (int) timeChronometer;
-            // Logros SIEMPRE en español:
             String logros = "Nivel no completado";
             savePartida(startDateStr, restartCount, logros, elapsedSec, level);
             historyRecorded = true;
@@ -334,7 +324,6 @@ public abstract class BasePlayScreen implements Screen {
         disposeCommonAssets();
     }
 
-    // ================== Métodos abstractos para las subclases ==================
     protected abstract void onShowExtra();
 
     protected abstract void onDrawMap();
@@ -343,7 +332,6 @@ public abstract class BasePlayScreen implements Screen {
 
     protected abstract void onDisposeExtra();
 
-    // ================== Lógica principal ==================
     protected void onUpdate(float delta) {
         // Toggle pausa
         if (Gdx.input.isKeyJustPressed(kPause)) {
@@ -491,7 +479,6 @@ public abstract class BasePlayScreen implements Screen {
                 if (isGameplayLevel() && !historyRecorded) {
                     int elapsedSecReal = (int) timeChronometer;
 
-                    // Logros SIEMPRE en español
                     StringBuilder lg = new StringBuilder();
                     lg.append("Nivel completado");
 
@@ -516,7 +503,6 @@ public abstract class BasePlayScreen implements Screen {
                 moveRequested = false;
                 tweenActive = false;
 
-                // Cambio inmediato de pantalla SIN delay
                 app.setScreen(new VictoryScreen(app, level, victoryMoves, victoryPushes, victorySeconds, 7, font));
                 return;
             }
@@ -557,7 +543,6 @@ public abstract class BasePlayScreen implements Screen {
         levelSessionTimeSubmitted = true;
     }
 
-    // ================== Carga/descarga de assets ==================
     protected void loadCommonAssets() {
         fontGenerator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/pokemon_fire_red.ttf"));
         fontParameter = new FreeTypeFontParameter();

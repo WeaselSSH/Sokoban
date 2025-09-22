@@ -21,7 +21,6 @@ import com.elkinedwin.LogicaUsuario.Usuario;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
 
 public class RankingScreen extends BaseScreen {
 
@@ -114,7 +113,7 @@ public class RankingScreen extends BaseScreen {
 
         card.add(header).expandX().fillX().row();
 
-        List<Usuario> ranking = buildRankingList();
+        ArrayList<Usuario> ranking = buildRankingList();
         int pos = 1;
         Usuario activo = ManejoUsuarios.UsuarioActivo;
 
@@ -163,7 +162,7 @@ public class RankingScreen extends BaseScreen {
         content.add(card).expandX().fillX().row();
     }
 
-    private List<Usuario> buildRankingList() {
+    private ArrayList<Usuario> buildRankingList() {
         Usuario activo = ManejoUsuarios.UsuarioActivo;
         ArrayList<Usuario> lista = (activo != null && activo.getRivales() != null)
                 ? new ArrayList<>(activo.getRivales())
