@@ -14,8 +14,16 @@ public class Usuario {
 
     private Long fechaRegistro;
     private Long ultimaSesion;
-    public  Long sesionActual;
-    public  Long sesionAnterior;
+    public Long sesionActual;
+    public Long sesionAnterior;
+
+    public int getIdioma() {
+        return getConfiguracion("Idioma");
+    }
+
+    public void setIdioma(int v) {
+        setConfiguracion("Idioma", v);
+    } // 1=ES, 2=EN
 
     // Por nivel (1..7) indexado con nivel-1
     private ArrayList<Integer> mayorPuntuacion = new ArrayList<>();     // menor cantidad de pasos
@@ -41,19 +49,29 @@ public class Usuario {
 
     public Usuario(String usuario, String nombre, String contrasena, Long fechas) {
         this.fechaRegistro = fechas;
-        this.ultimaSesion  = fechas;
+        this.ultimaSesion = fechas;
         this.sesionAnterior = fechas;
-        this.sesionActual  = Calendar.getInstance().getTimeInMillis();
+        this.sesionActual = Calendar.getInstance().getTimeInMillis();
 
         this.usuario = usuario;
-        this.nombre  = nombre;
+        this.nombre = nombre;
         this.contrasena = contrasena;
 
-        for (int i = 0; i < 7; i++) mayorPuntuacion.add(0);
-        for (int i = 0; i < 7; i++) nivelesCompletados.add(false);
-        for (int i = 0; i < 7; i++) tiempoPorNivel.add(0);
-        for (int i = 0; i < 7; i++) partidasPorNivel.add(0);
-        for (int i = 0; i < 7; i++) mejorTiempoPorNivel.add(0);
+        for (int i = 0; i < 7; i++) {
+            mayorPuntuacion.add(0);
+        }
+        for (int i = 0; i < 7; i++) {
+            nivelesCompletados.add(false);
+        }
+        for (int i = 0; i < 7; i++) {
+            tiempoPorNivel.add(0);
+        }
+        for (int i = 0; i < 7; i++) {
+            partidasPorNivel.add(0);
+        }
+        for (int i = 0; i < 7; i++) {
+            mejorTiempoPorNivel.add(0);
+        }
 
         configuracion.put("Volumen", 80);
         configuracion.put("MoverArriba", 19);
@@ -63,7 +81,9 @@ public class Usuario {
         configuracion.put("Reiniciar", 46);
         configuracion.put("Idioma", 1);
 
-        for (int i = 0; i < tiempoPromedio.length; i++) tiempoPromedio[i] = 0;
+        for (int i = 0; i < tiempoPromedio.length; i++) {
+            tiempoPromedio[i] = 0;
+        }
     }
 
     public void recalcularTiempoPromedio() {
@@ -74,8 +94,13 @@ public class Usuario {
         }
     }
 
-    public Boolean getTutocomplete() { return Tutocomplete; }
-    public void setTutocomplete(Boolean tutocomplete) { this.Tutocomplete = tutocomplete; }
+    public Boolean getTutocomplete() {
+        return Tutocomplete;
+    }
+
+    public void setTutocomplete(Boolean tutocomplete) {
+        this.Tutocomplete = tutocomplete;
+    }
 
     public void recalcularTiempoPromedioNivel(int nivel) {
         int idx = nivel - 1;
@@ -88,7 +113,9 @@ public class Usuario {
         return tiempoPromedio[nivel - 1];
     }
 
-    public int[] getTiemposPromedio() { return tiempoPromedio; }
+    public int[] getTiemposPromedio() {
+        return tiempoPromedio;
+    }
 
     // Sumar tiempo de una partida GANADA de "nivel" y actualizar promedio
     public void acumularPartida(int nivel, int tiempoSegundos) {
@@ -101,57 +128,126 @@ public class Usuario {
     }
 
     // Mejor tiempo por nivel (min en segundos). 0 => no existe aún
-    public int getMejorTiempoPorNivel(int nivel) { return mejorTiempoPorNivel.get(nivel - 1); }
-    public void setMejorTiempoPorNivel(int nivel, int v) { mejorTiempoPorNivel.set(nivel - 1, v); }
+    public int getMejorTiempoPorNivel(int nivel) {
+        return mejorTiempoPorNivel.get(nivel - 1);
+    }
 
-    public int getPartidasTotales() { return partidasTotales; }
-    public void setPartidasTotales(int v) { this.partidasTotales = v; }
+    public void setMejorTiempoPorNivel(int nivel, int v) {
+        mejorTiempoPorNivel.set(nivel - 1, v);
+    }
 
-    public int getPuntuacionGeneral() { return puntuacionGeneral; }
-    public void setPuntuacionGeneral(int v) { this.puntuacionGeneral = v; }
+    public int getPartidasTotales() {
+        return partidasTotales;
+    }
 
-    public int getTiempoJugadoTotal() { return tiempoJugadoTotal; }
-    public void setTiempoJugadoTotal(int v) { this.tiempoJugadoTotal = v; }
+    public void setPartidasTotales(int v) {
+        this.partidasTotales = v;
+    }
 
-    public String getUsuario() { return usuario; }
-    public void setUsuario(String v) { this.usuario = v; }
+    public int getPuntuacionGeneral() {
+        return puntuacionGeneral;
+    }
 
-    public String getNombre() { return nombre; }
-    public void setNombre(String v) { this.nombre = v; }
+    public void setPuntuacionGeneral(int v) {
+        this.puntuacionGeneral = v;
+    }
 
-    public String getContrasena() { return contrasena; }
-    public void setContrasena(String v) { this.contrasena = v; }
+    public int getTiempoJugadoTotal() {
+        return tiempoJugadoTotal;
+    }
 
-    public Long getFechaRegistro() { return fechaRegistro; }
-    public void setFechaRegistro(Long v) { this.fechaRegistro = v; }
+    public void setTiempoJugadoTotal(int v) {
+        this.tiempoJugadoTotal = v;
+    }
 
-    public Long getUltimaSesion() { return ultimaSesion; }
+    public String getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(String v) {
+        this.usuario = v;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String v) {
+        this.nombre = v;
+    }
+
+    public String getContrasena() {
+        return contrasena;
+    }
+
+    public void setContrasena(String v) {
+        this.contrasena = v;
+    }
+
+    public Long getFechaRegistro() {
+        return fechaRegistro;
+    }
+
+    public void setFechaRegistro(Long v) {
+        this.fechaRegistro = v;
+    }
+
+    public Long getUltimaSesion() {
+        return ultimaSesion;
+    }
+
     public String getUltimaSesionTexto() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return sdf.format(ultimaSesion);
     }
-    public void setUltimaSesion(Long v){
+
+    public void setUltimaSesion(Long v) {
         this.ultimaSesion = v;
         this.sesionAnterior = v;
     }
 
-    public void setNivelCompletado(int nivel, Boolean estado){ nivelesCompletados.set(nivel - 1, estado); }
-    public boolean getNivelCompletado(int nivel){ return nivelesCompletados.get(nivel - 1); }
+    public void setNivelCompletado(int nivel, Boolean estado) {
+        nivelesCompletados.set(nivel - 1, estado);
+    }
 
-    public void setMayorPuntuacion(int nivel, int puntuacion){ mayorPuntuacion.set(nivel - 1, puntuacion); }
-    public int getMayorPuntuacion(int nivel){ return mayorPuntuacion.get(nivel - 1); }
+    public boolean getNivelCompletado(int nivel) {
+        return nivelesCompletados.get(nivel - 1);
+    }
 
-    public void setPartidasPorNivel(int nivel, int partidas){ partidasPorNivel.set(nivel - 1, partidas); }
-    public int getPartidasPorNivel(int nivel){ return partidasPorNivel.get(nivel - 1); }
+    public void setMayorPuntuacion(int nivel, int puntuacion) {
+        mayorPuntuacion.set(nivel - 1, puntuacion);
+    }
 
-    public void setTiempoPorNivel(int nivel, int tiempo){ tiempoPorNivel.set(nivel - 1, tiempo); }
-    public int getTiempoPorNivel(int nivel){ return tiempoPorNivel.get(nivel - 1); }
+    public int getMayorPuntuacion(int nivel) {
+        return mayorPuntuacion.get(nivel - 1);
+    }
 
-    public void setConfiguracion(String clave, int valor){ configuracion.put(clave, valor); }
-    public int getConfiguracion(String clave){
+    public void setPartidasPorNivel(int nivel, int partidas) {
+        partidasPorNivel.set(nivel - 1, partidas);
+    }
+
+    public int getPartidasPorNivel(int nivel) {
+        return partidasPorNivel.get(nivel - 1);
+    }
+
+    public void setTiempoPorNivel(int nivel, int tiempo) {
+        tiempoPorNivel.set(nivel - 1, tiempo);
+    }
+
+    public int getTiempoPorNivel(int nivel) {
+        return tiempoPorNivel.get(nivel - 1);
+    }
+
+    public void setConfiguracion(String clave, int valor) {
+        configuracion.put(clave, valor);
+    }
+
+    public int getConfiguracion(String clave) {
         Integer v = configuracion.get(clave);
         return (v == null) ? 0 : v;
     }
 
-    public void setAvatar(String path){ this.avatar = path; }
+    public void setAvatar(String path) {
+        this.avatar = path;
+    }
 }

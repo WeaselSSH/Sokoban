@@ -1,5 +1,6 @@
 package Screens;
 
+import GameLogic.Lang;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -52,10 +53,11 @@ public class LoginScreen extends BaseScreen {
             skin = buildMinimalSkin();
         }
 
-        lblTitle = new Label("INICIO DE SESION", skin, skin.has("lblTitle", Label.LabelStyle.class) ? "lblTitle" : "default");
-        btnLogin = new TextButton("Iniciar sesion", skin);
-        btnCrear = new TextButton("Crear jugador", skin);
-        btnSalir = new TextButton("Salir", skin);
+        lblTitle = new Label(Lang.loginScreenTitle(), skin,
+                skin.has("lblTitle", Label.LabelStyle.class) ? "lblTitle" : "default");
+        btnLogin = new TextButton(Lang.loginButton(), skin);
+        btnCrear = new TextButton(Lang.createPlayerButton(), skin);
+        btnSalir = new TextButton(Lang.exitButton(), skin);
 
         btnLogin.addListener(new ClickListener() {
             @Override
@@ -117,17 +119,17 @@ public class LoginScreen extends BaseScreen {
     }
 
     private void loginDialog() {
-        final Dialog dialog = new Dialog("Iniciar sesion", skin);
+        final Dialog dialog = new Dialog(Lang.dlgLoginTitle(), skin);
         Table content = dialog.getContentTable();
         content.pad(16f);
         content.defaults().pad(6f).fillX();
 
         final TextField user = new TextField("", skin, skin.has("tfSmall", TextField.TextFieldStyle.class) ? "tfSmall" : "default");
-        user.setMessageText("Usuario");
+        user.setMessageText(Lang.fieldUser());
         user.setTextFieldFilter(onlyAlnumFilter());
 
         final TextField password = new TextField("", skin, skin.has("tfSmall", TextField.TextFieldStyle.class) ? "tfSmall" : "default");
-        password.setMessageText("Contrasena");
+        password.setMessageText(Lang.fieldPassword());
         password.setPasswordMode(true);
         password.setPasswordCharacter('*');
         password.setTextFieldFilter(onlyAlnumFilter());
@@ -137,14 +139,14 @@ public class LoginScreen extends BaseScreen {
             error.setColor(Color.SALMON);
         }
 
-        content.add(new Label("Usuario", skin)).left().row();
+        content.add(new Label(Lang.fieldUser(), skin)).left().row();
         content.add(user).width(340f).row();
-        content.add(new Label("Contrasena", skin)).left().row();
+        content.add(new Label(Lang.fieldPassword(), skin)).left().row();
         content.add(password).width(340f).row();
         content.add(error).left().row();
 
-        TextButton cancelBtn = new TextButton("Cancelar", skin);
-        TextButton okBtn = new TextButton("Entrar", skin);
+        TextButton cancelBtn = new TextButton(Lang.dlgCancel(), skin);
+        TextButton okBtn = new TextButton(Lang.dlgEnter(), skin);
 
         cancelBtn.addListener(new ClickListener() {
             @Override
@@ -159,14 +161,14 @@ public class LoginScreen extends BaseScreen {
                 String p = password.getText().trim();
 
                 if (!isAlnum(u) || !isAlnum(p)) {
-                    error.setText("Solo letras o numeros");
+                    error.setText(Lang.errOnlyAlnum());
                     return;
                 }
 
                 try {
                     String path = ManejoArchivos.buscarUsuario(u);
                     if (path == null) {
-                        error.setText("Usuario no existe");
+                        error.setText(Lang.errUserNotFound());
                         return;
                     }
 
@@ -181,7 +183,7 @@ public class LoginScreen extends BaseScreen {
                     String passArchivo = ManejoUsuarios.UsuarioActivo.getContrasena();
                     if (passArchivo == null || !passArchivo.equals(p)) {
                         ManejoUsuarios.UsuarioActivo = null;
-                        error.setText("Contrasena incorrecta");
+                        error.setText(Lang.errWrongPassword());
                         return;
                     }
 
@@ -196,11 +198,13 @@ public class LoginScreen extends BaseScreen {
 
                     ArchivoGuardar.guardarFechas();
 
+                    Lang.init(ManejoUsuarios.UsuarioActivo.getIdioma());
+
                     dialog.hide();
                     game.setScreen(new MenuScreen(game));
 
                 } catch (Exception ex) {
-                    error.setText("Fallo");
+                    error.setText(Lang.errFail());
                 }
             }
         });
@@ -216,21 +220,21 @@ public class LoginScreen extends BaseScreen {
     }
 
     private void createPlayerDialog() {
-        final Dialog dialog = new Dialog("Crear jugador", skin);
+        final Dialog dialog = new Dialog(Lang.dlgCreateTitle(), skin);
         Table content = dialog.getContentTable();
         content.pad(16f);
         content.defaults().pad(6f).fillX();
 
         final TextField user = new TextField("", skin, skin.has("tfSmall", TextField.TextFieldStyle.class) ? "tfSmall" : "default");
-        user.setMessageText("Usuario");
+        user.setMessageText(Lang.fieldUser());
         user.setTextFieldFilter(onlyAlnumFilter());
 
         final TextField name = new TextField("", skin, skin.has("tfSmall", TextField.TextFieldStyle.class) ? "tfSmall" : "default");
-        name.setMessageText("Nombre");
+        name.setMessageText(Lang.fieldName());
         name.setTextFieldFilter(onlyAlnumFilter());
 
         final TextField password = new TextField("", skin, skin.has("tfSmall", TextField.TextFieldStyle.class) ? "tfSmall" : "default");
-        password.setMessageText("Contrasena");
+        password.setMessageText(Lang.fieldPassword());
         password.setPasswordMode(true);
         password.setPasswordCharacter('*');
         password.setTextFieldFilter(onlyAlnumFilter());
@@ -240,16 +244,16 @@ public class LoginScreen extends BaseScreen {
             error.setColor(Color.SALMON);
         }
 
-        content.add(new Label("Usuario", skin)).left().row();
+        content.add(new Label(Lang.fieldUser(), skin)).left().row();
         content.add(user).width(340f).row();
-        content.add(new Label("Nombre", skin)).left().row();
+        content.add(new Label(Lang.fieldName(), skin)).left().row();
         content.add(name).width(340f).row();
-        content.add(new Label("Contrasena", skin)).left().row();
+        content.add(new Label(Lang.fieldPassword(), skin)).left().row();
         content.add(password).width(340f).row();
         content.add(error).left().row();
 
-        TextButton cancelBtn = new TextButton("Cancelar", skin);
-        TextButton createBtn = new TextButton("Crear", skin);
+        TextButton cancelBtn = new TextButton(Lang.dlgCancel(), skin);
+        TextButton createBtn = new TextButton(Lang.dlgCreate(), skin);
 
         cancelBtn.addListener(new ClickListener() {
             @Override
@@ -265,24 +269,27 @@ public class LoginScreen extends BaseScreen {
                 String p = password.getText().trim();
 
                 if (!isAlnum(u) || !isAlnum(n) || !isAlnum(p)) {
-                    error.setText("Solo letras o numeros");
+                    error.setText(Lang.errOnlyAlnum());
                     return;
                 }
 
                 try {
                     String existe = ManejoArchivos.buscarUsuario(u);
                     if (existe != null) {
-                        error.setText("Usuario ya existe");
+                        error.setText(Lang.errUserNotFound()); // Podrías tener Lang.errUserExists() si quieres diferenciar
                         return;
                     }
 
                     ManejoArchivos.crearUsuario(n, u, p);
 
                     dialog.hide();
-                    new Dialog("Listo", skin).text("Usuario creado").button("OK", true).show(stage);
+                    new Dialog(Lang.createdOkTitle(), skin)
+                            .text(Lang.createdOkBody())
+                            .button("OK", true)
+                            .show(stage);
 
                 } catch (Exception ex) {
-                    error.setText("Fallo");
+                    error.setText(Lang.errFail());
                 }
             }
         });

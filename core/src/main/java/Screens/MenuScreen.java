@@ -41,6 +41,11 @@ public class MenuScreen extends BaseScreen {
 
     @Override
     protected void onShow() {
+        int idioma = (ManejoUsuarios.UsuarioActivo != null)
+                ? ManejoUsuarios.UsuarioActivo.getIdioma()
+                : 1;
+        Lang.init(idioma);
+
         fontGenerator = new FreeTypeFontGenerator(files.internal("fonts/pokemon_fire_red.ttf"));
 
         FreeTypeFontGenerator.FreeTypeFontParameter titleParam = new FreeTypeFontGenerator.FreeTypeFontParameter();
