@@ -1,17 +1,8 @@
 package GameLogic;
 
-// 1 = ES, 2 = EN
 public final class Lang {
 
     private static int current = 1;
-
-    public static String errUserExists() {
-        return (current == 2) ? "User already in use" : "Usuario ya en uso";
-    }
-
-    public static String errPasswordMismatch() {
-        return (current == 2) ? "Password does not match" : "La contrasena no coincide";
-    }
 
     private Lang() {
     }
@@ -22,6 +13,42 @@ public final class Lang {
 
     public static int get() {
         return current;
+    }
+
+    public static String errUserExists() {
+        return (current == 2) ? "User already in use" : "Usuario ya en uso";
+    }
+
+    public static String errPasswordMismatch() {
+        return (current == 2) ? "Password does not match" : "La contrasena no coincide";
+    }
+
+    public static String errOnlyAlnum() {
+        return (current == 2) ? "Letters or numbers only" : "Solo letras o numeros";
+    }
+
+    public static String errUserNotFound() {
+        return (current == 2) ? "User does not exist" : "Usuario no existe";
+    }
+
+    public static String errWrongPassword() {
+        return (current == 2) ? "Wrong password" : "Contrasena incorrecta";
+    }
+
+    public static String errFail() {
+        return (current == 2) ? "Failed" : "Fallo";
+    }
+
+    public static String errCommaNotAllowed() {
+        return (current == 2) ? "Comma (,) is not allowed" : "No se permite la coma (,)";
+    }
+
+    public static String errEmptyUser() {
+        return (current == 2) ? "Empty user" : "Usuario vacio";
+    }
+
+    public static String errPasswordRequirements() {
+        return (current == 2) ? "Password does not meet requirements" : "La contrasena no cumple los requisitos.";
     }
 
     public static String gameTitle() {
@@ -64,7 +91,6 @@ public final class Lang {
         return (current == 2) ? "You will start with the tutorial." : "Comenzaras con el tutorial.";
     }
 
-    // === LOGIN ===
     public static String loginScreenTitle() {
         return (current == 2) ? "SIGN IN" : "INICIO DE SESION";
     }
@@ -99,22 +125,6 @@ public final class Lang {
 
     public static String dlgEnter() {
         return (current == 2) ? "Enter" : "Entrar";
-    }
-
-    public static String errOnlyAlnum() {
-        return (current == 2) ? "Letters or numbers only" : "Solo letras o numeros";
-    }
-
-    public static String errUserNotFound() {
-        return (current == 2) ? "User does not exist" : "Usuario no existe";
-    }
-
-    public static String errWrongPassword() {
-        return (current == 2) ? "Wrong password" : "Contrasena incorrecta";
-    }
-
-    public static String errFail() {
-        return (current == 2) ? "Failed" : "Fallo";
     }
 
     public static String dlgCreateTitle() {
@@ -186,9 +196,7 @@ public final class Lang {
     }
 
     public static String cfgHintPressKey() {
-        return (current == 2)
-                ? "Click a button and press a key · ESC cancels"
-                : "Clic en un boton y presiona una tecla  ESC: cancelar";
+        return (current == 2) ? "Click a button and press a key · ESC cancels" : "Clic en un boton y presiona una tecla  ESC: cancelar";
     }
 
     public static String pressAKey() {
@@ -248,8 +256,7 @@ public final class Lang {
     }
 
     public static String victoryHintNextBack() {
-        return (current == 2) ? "[ENTER] Next level     [ESC] Back to selector"
-                : "[ENTER] Siguiente nivel     [ESC] Volver al selector";
+        return (current == 2) ? "[ENTER] Next level     [ESC] Back to selector" : "[ENTER] Siguiente nivel     [ESC] Volver al selector";
     }
 
     public static String elevatorEnteringLevel() {
@@ -328,7 +335,6 @@ public final class Lang {
         return (current == 2) ? "New record for time" : "Nuevo record de tiempo";
     }
 
-    // === MI PERFIL ===
     public static String profileAccountDataTitle() {
         return (current == 2) ? "Account data" : "Datos de la cuenta";
     }
@@ -365,7 +371,6 @@ public final class Lang {
         return (current == 2) ? "Not completed" : "Sin completar";
     }
 
-// Tabla de estadisticas
     public static String profileLevel() {
         return (current == 2) ? "Level" : "Nivel";
     }
@@ -418,22 +423,57 @@ public final class Lang {
         return (current == 2) ? "Confirm:" : "Confirmar:";
     }
 
-// Errores especificos
-    public static String errCommaNotAllowed() {
-        return (current == 2) ? "Comma (,) is not allowed" : "No se permite la coma (,)";
-    }
-
-    public static String errEmptyUser() {
-        return (current == 2) ? "Empty user" : "Usuario vacio";
-    }
-
-    public static String errPasswordRequirements() {
-        return (current == 2) ? "Password does not meet requirements" : "La contrasena no cumple los requisitos.";
-    }
-
-// Extra (opcional) para selector de avatar
     public static String profileSelectAvatarTitle() {
         return (current == 2) ? "Select avatar image" : "Seleccionar imagen de avatar";
     }
 
+    public static String rankingTitle() {
+        return (current == 2) ? "Global Ranking" : "Ranking Global";
+    }
+
+    public static String rankingPos() {
+        return (current == 2) ? "Pos" : "Pos";
+    }
+
+    public static String rankingAvatar() {
+        return (current == 2) ? "Avatar" : "Avatar";
+    }
+
+    public static String rankingUser() {
+        return (current == 2) ? "User" : "Usuario";
+    }
+
+    public static String rankingLevels() {
+        return (current == 2) ? "Levels" : "Niveles";
+    }
+
+    public static String rankingMatches() {
+        return (current == 2) ? "Matches" : "Partidas";
+    }
+
+    public static String rankingPlayTime() {
+        return (current == 2) ? "Play time" : "Tiempo de juego";
+    }
+
+    public static String rankingAccumulated() {
+        return (current == 2) ? "Accumulated" : "Acumulado";
+    }
+
+    public static String rankingSteps() {
+        return (current == 2) ? "Steps" : "Pasos";
+    }
+
+    public static String rankingPushes() {
+        return (current == 2) ? "Pushes" : "Empujes";
+    }
+
+    public static String rankingTime() {
+        return (current == 2) ? "Time" : "Tiempo";
+    }
+
+    public static String rankingLegend() {
+        return (current == 2)
+                ? "Steps/Pushes/Time are totals from the best attempt on each level."
+                : "Pasos/Empujes/Tiempo son acumulados del mejor intento de cada nivel.";
+    }
 }
