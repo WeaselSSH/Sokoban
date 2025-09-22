@@ -5,10 +5,17 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField;
+import com.badlogic.gdx.scenes.scene2d.ui.Window;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 
@@ -24,12 +31,12 @@ public class LoginScreen extends BaseScreen {
 
     private final Game game;
 
-    private Texture titleTex, loginTex, createPlayerTex, exitTex;
-    private Image titleImg, loginImg, createPlayerImg, exitImg;
-
     private Skin skin;
     private Label lblTitle;
     private TextButton btnLogin, btnCrear, btnSalir;
+
+    private Texture background;
+    private SpriteBatch batch;
 
     public LoginScreen(Game game) {
         this.game = game;
@@ -45,55 +52,68 @@ public class LoginScreen extends BaseScreen {
             skin = buildMinimalSkin();
         }
 
-        if (files.internal("ui/logintitle.png").exists()) titleTex = new Texture("ui/logintitle.png");
-        if (files.internal("ui/login.png").exists()) loginTex = new Texture("ui/login.png");
-        if (files.internal("ui/createplayer.png").exists()) createPlayerTex = new Texture("ui/createplayer.png");
-        if (files.internal("ui/exit.png").exists()) exitTex = new Texture("ui/exit.png");
-
-        if (titleTex != null) titleImg = new Image(titleTex);
-        if (loginTex != null) loginImg = new Image(loginTex);
-        if (createPlayerTex != null) createPlayerImg = new Image(createPlayerTex);
-        if (exitTex != null) exitImg = new Image(exitTex);
-
         lblTitle = new Label("INICIO DE SESION", skin, skin.has("lblTitle", Label.LabelStyle.class) ? "lblTitle" : "default");
         btnLogin = new TextButton("Iniciar sesion", skin);
         btnCrear = new TextButton("Crear jugador", skin);
         btnSalir = new TextButton("Salir", skin);
 
-        ClickListener loginListener = new ClickListener() { @Override public void clicked(InputEvent e, float x, float y) { loginDialog(); } };
-        ClickListener createListener = new ClickListener() { @Override public void clicked(InputEvent e, float x, float y) { createPlayerDialog(); } };
-        ClickListener exitListener = new ClickListener() { @Override public void clicked(InputEvent e, float x, float y) { app.exit(); } };
-
-        if (loginImg != null) loginImg.addListener(loginListener);
-        if (createPlayerImg != null) createPlayerImg.addListener(createListener);
-        if (exitImg != null) exitImg.addListener(exitListener);
-
-        btnLogin.addListener(loginListener);
-        btnCrear.addListener(createListener);
-        btnSalir.addListener(exitListener);
+        btnLogin.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent e, float x, float y) {
+                loginDialog();
+            }
+        });
+        btnCrear.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent e, float x, float y) {
+                createPlayerDialog();
+            }
+        });
+        btnSalir.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent e, float x, float y) {
+                app.exit();
+            }
+        });
 
         Table root = new Table();
         root.setFillParent(true);
         stage.addActor(root);
 
         root.top().padTop(40f);
-        if (titleImg != null) root.add(titleImg).center().padBottom(70f).row();
-        else root.add(lblTitle).center().padBottom(70f).row();
+        root.add(lblTitle).center().padBottom(70f).row();
 
         root.defaults().padTop(14f).padBottom(14f);
-        if (loginImg != null) root.add(loginImg).center().row(); else root.add(btnLogin).center().row();
-        if (createPlayerImg != null) root.add(createPlayerImg).center().row(); else root.add(btnCrear).center().row();
-        if (exitImg != null) root.add(exitImg).center().padTop(28f).row(); else root.add(btnSalir).center().padTop(28f).row();
+        root.add(btnLogin).center().row();
+        root.add(btnCrear).center().row();
+        root.add(btnSalir).center().padTop(28f).row();
+
+        background = new Texture("ui/bg_general.png");
+        batch = new SpriteBatch();
+    }
+
+    @Override
+    public void render(float delta) {
+        batch.begin();
+        batch.draw(background, 0, 0, stage.getViewport().getScreenWidth(), stage.getViewport().getScreenHeight());
+        batch.end();
+
+        stage.act(delta);
+        stage.draw();
     }
 
     @Override
     public void dispose() {
         super.dispose();
-        if (titleTex != null) titleTex.dispose();
-        if (loginTex != null) loginTex.dispose();
-        if (createPlayerTex != null) createPlayerTex.dispose();
-        if (exitTex != null) exitTex.dispose();
-        if (skin != null) skin.dispose();
+        if (skin != null) {
+            skin.dispose();
+        }
+        if (background != null) {
+            background.dispose();
+        }
+        if (batch != null) {
+            batch.dispose();
+        }
     }
 
     private void loginDialog() {
@@ -113,7 +133,9 @@ public class LoginScreen extends BaseScreen {
         password.setTextFieldFilter(onlyAlnumFilter());
 
         final Label error = new Label("", skin, skin.has("error", Label.LabelStyle.class) ? "error" : "default");
-        if (!skin.has("error", Label.LabelStyle.class)) error.setColor(Color.SALMON);
+        if (!skin.has("error", Label.LabelStyle.class)) {
+            error.setColor(Color.SALMON);
+        }
 
         content.add(new Label("Usuario", skin)).left().row();
         content.add(user).width(340f).row();
@@ -124,9 +146,15 @@ public class LoginScreen extends BaseScreen {
         TextButton cancelBtn = new TextButton("Cancelar", skin);
         TextButton okBtn = new TextButton("Entrar", skin);
 
-        cancelBtn.addListener(new ClickListener() { @Override public void clicked(InputEvent event, float x, float y) { dialog.hide(); }});
+        cancelBtn.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                dialog.hide();
+            }
+        });
         okBtn.addListener(new ClickListener() {
-            @Override public void clicked(InputEvent event, float x, float y) {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
                 String u = user.getText().trim();
                 String p = password.getText().trim();
 
@@ -178,9 +206,9 @@ public class LoginScreen extends BaseScreen {
         });
 
         Table bt = dialog.getButtonTable();
-        bt.pad(0,16f,16f,16f);
+        bt.pad(0, 16f, 16f, 16f);
         bt.defaults().width(140f).height(54f).padLeft(8f).padRight(8f);
-        bt.add(cancelBtn);
+        bt.add(cancelBtn).padRight(40f);
         bt.add(okBtn);
 
         dialog.show(stage);
@@ -208,7 +236,9 @@ public class LoginScreen extends BaseScreen {
         password.setTextFieldFilter(onlyAlnumFilter());
 
         final Label error = new Label("", skin, skin.has("error", Label.LabelStyle.class) ? "error" : "default");
-        if (!skin.has("error", Label.LabelStyle.class)) error.setColor(Color.SALMON);
+        if (!skin.has("error", Label.LabelStyle.class)) {
+            error.setColor(Color.SALMON);
+        }
 
         content.add(new Label("Usuario", skin)).left().row();
         content.add(user).width(340f).row();
@@ -221,9 +251,15 @@ public class LoginScreen extends BaseScreen {
         TextButton cancelBtn = new TextButton("Cancelar", skin);
         TextButton createBtn = new TextButton("Crear", skin);
 
-        cancelBtn.addListener(new ClickListener() { @Override public void clicked(InputEvent event, float x, float y) { dialog.hide(); }});
+        cancelBtn.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                dialog.hide();
+            }
+        });
         createBtn.addListener(new ClickListener() {
-            @Override public void clicked(InputEvent event, float x, float y) {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
                 String u = user.getText().trim();
                 String n = name.getText().trim();
                 String p = password.getText().trim();
@@ -252,7 +288,7 @@ public class LoginScreen extends BaseScreen {
         });
 
         Table bt = dialog.getButtonTable();
-        bt.pad(0,16f,16f,16f);
+        bt.pad(0, 16f, 16f, 16f);
         bt.defaults().width(140f).height(54f).padLeft(8f).padRight(8f);
         bt.add(cancelBtn);
         bt.add(createBtn);
@@ -269,14 +305,14 @@ public class LoginScreen extends BaseScreen {
 
         p.size = 66;
         p.color = Color.valueOf("E6DFC9");
+        p.borderWidth = 2;
+        p.borderColor = Color.BLACK;
         BitmapFont ui = generator.generateFont(p);
 
         p.size = 38;
-        p.color = Color.valueOf("E6DFC9");
         BitmapFont uiSmall = generator.generateFont(p);
 
         p.size = 136;
-        p.color = Color.valueOf("E6DFC9");
         BitmapFont lblTitle = generator.generateFont(p);
         generator.dispose();
 
@@ -317,7 +353,7 @@ public class LoginScreen extends BaseScreen {
         tfs.fontColor = Color.WHITE;
         tfs.cursor = whiteDraw.tint(Color.WHITE);
         tfs.selection = whiteDraw.tint(new Color(1, 1, 1, 0.25f));
-        tfs.background = whiteDraw.tint(new Color(1f, 1f, 1f, 0.15f));
+        tfs.background = whiteDraw.tint(new Color(0f, 0f, 0f, 0.6f));
         skin.add("default", tfs);
 
         TextField.TextFieldStyle tfsSmall = new TextField.TextFieldStyle(tfs);
