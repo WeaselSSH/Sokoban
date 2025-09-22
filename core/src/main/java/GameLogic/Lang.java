@@ -1,8 +1,6 @@
 package GameLogic;
 
-
-//1 = ES, 2 = EN
-
+// 1 = ES, 2 = EN
 public final class Lang {
 
     private static int current = 1;
@@ -19,7 +17,7 @@ public final class Lang {
     }
 
     public static String gameTitle() {
-        return (current == 2) ? "SOKOBAN" : "SOKOBAN";
+        return "SOKOBAN";
     }
 
     public static String play() {
@@ -27,7 +25,7 @@ public final class Lang {
     }
 
     public static String tutorial() {
-        return (current == 2) ? "Tutorial" : "Tutorial";
+        return "Tutorial";
     }
 
     public static String settings() {
@@ -51,7 +49,7 @@ public final class Lang {
     }
 
     public static String mustDoTutorialTitle() {
-        return (current == 2) ? "Tutorial" : "Tutorial";
+        return "Tutorial";
     }
 
     public static String mustDoTutorialBody() {
@@ -129,5 +127,75 @@ public final class Lang {
 
     public static String createdOkBody() {
         return (current == 2) ? "User created" : "Usuario creado";
+    }
+
+    public static String cfgControls() {
+        return (current == 2) ? "Controls" : "Controles";
+    }
+
+    public static String cfgUp() {
+        return (current == 2) ? "Up" : "Arriba";
+    }
+
+    public static String cfgDown() {
+        return (current == 2) ? "Down" : "Abajo";
+    }
+
+    public static String cfgLeft() {
+        return (current == 2) ? "Left" : "Izquierda";
+    }
+
+    public static String cfgRight() {
+        return (current == 2) ? "Right" : "Derecha";
+    }
+
+    public static String cfgRestart() {
+        return (current == 2) ? "Restart" : "Reiniciar";
+    }
+
+    public static String cfgAudio() {
+        return "Audio";
+    }
+
+    public static String cfgVolume() {
+        return (current == 2) ? "Volume" : "Volumen";
+    }
+
+    public static String cfgLanguage() {
+        return (current == 2) ? "Language" : "Idioma";
+    }
+
+    public static String cfgSelect() {
+        return (current == 2) ? "Select" : "Seleccionar";
+    }
+
+    public static String saveChanges() {
+        return (current == 2) ? "Save changes" : "Guardar cambios";
+    }
+
+    public static String back() {
+        return (current == 2) ? "Back" : "Regresar";
+    }
+
+    public static String cfgHintPressKey() {
+        return (current == 2)
+                ? "Click a button and press a key  ·  ESC cancels"
+                : "Clic en un botón y presiona una tecla  ·  ESC cancela";
+    }
+
+    public static String pressAKey() {
+        return (current == 2) ? "Press a key…" : "Presiona una tecla…";
+    }
+
+    public static String savedCheck() {
+        return (current == 2) ? "✅  Changes saved" : "✅  Cambios guardados";
+    }
+
+    public static String langSpanish() {
+        return "Espanol";
+    }
+
+    public static String langEnglish() {
+        return "Ingles";
     }
 }
