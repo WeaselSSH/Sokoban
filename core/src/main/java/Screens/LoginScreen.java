@@ -208,7 +208,7 @@ public class LoginScreen extends BaseScreen {
         Table bt = dialog.getButtonTable();
         bt.pad(0, 16f, 16f, 16f);
         bt.defaults().width(140f).height(54f).padLeft(8f).padRight(8f);
-        bt.add(cancelBtn).padRight(40f);
+        bt.add(cancelBtn).padRight(35f);
         bt.add(okBtn);
 
         dialog.show(stage);
