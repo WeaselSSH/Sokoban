@@ -1,21 +1,25 @@
 package Screens;
 
 import static com.badlogic.gdx.Gdx.input;
-import static com.badlogic.gdx.Input.Keys.R;
 
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import java.util.concurrent.ArrayBlockingQueue;
 import com.badlogic.gdx.graphics.Texture;
+import java.util.concurrent.ArrayBlockingQueue;
+
 import GameLogic.GameConfig;
 import GameLogic.MovementThread;
 import GameLogic.TileMap;
+import GameLogic.Lang;
 
 import com.elkinedwin.LogicaUsuario.AudioX;
 
 public final class GameScreen extends BasePlayScreen {
 
     private Texture boxTexture, boxTexturePlaced, targetTexture;
+
+    private int kUp, kDown, kLeft, kRight, kReset;
 
     public GameScreen(Game app, int level) {
         super(app, level);
@@ -30,6 +34,18 @@ public final class GameScreen extends BasePlayScreen {
         targetTexture = load("textures/target.png");
 
         boxPlacedSound = AudioX.newSound("audios/box_placed.wav");
+
+        kUp = getCfgKey("MoverArriba", Input.Keys.UP);
+        kDown = getCfgKey("MoverAbajo", Input.Keys.DOWN);
+        kLeft = getCfgKey("MoverIzq", Input.Keys.LEFT);
+        kRight = getCfgKey("MoverDer", Input.Keys.RIGHT);
+        kReset = getCfgKey("Reiniciar", Input.Keys.R);
+
+        sUp = keyLabel(kUp);
+        sDown = keyLabel(kDown);
+        sLeft = keyLabel(kLeft);
+        sRight = keyLabel(kRight);
+        sReset = keyLabel(kReset);
     }
 
     @Override
@@ -38,16 +54,13 @@ public final class GameScreen extends BasePlayScreen {
         if (paused) {
             return;
         }
-
-        int reiniciarKey = getCfgKey("Reiniciar", R);
-        if (input.isKeyJustPressed(reiniciarKey)) {
+        if (input.isKeyJustPressed(kReset)) {
             resetLevel();
         }
     }
 
     private void resetLevel() {
         AudioX.play(resetLevelSound, 1.0f);
-
         notifyRestart();
         try {
             if (movementThreadLogic != null) {
@@ -120,17 +133,19 @@ public final class GameScreen extends BasePlayScreen {
         String timeStr = String.format("%02d:%02d", minutes, seconds);
 
         BitmapFont f = font;
-        f.draw(batch, "Nivel " + level
-                + "  Pasos: " + moves
-                + "  Empujes: " + pushes
-                + "  Tiempo: " + timeStr,
+        f.draw(batch,
+                Lang.hudLevel() + " " + level
+                + "  " + Lang.hudSteps() + ": " + moves
+                + "  " + Lang.hudPushes() + ": " + pushes
+                + "  " + Lang.hudTime() + ": " + timeStr,
                 6, GameConfig.PX_HEIGHT - 6);
 
         if (level == 0) {
             float x = 6f, y = 36f;
-            font.draw(batch, "Controles:", x, y + 24);
-            font.draw(batch, "Arriba: " + sUp + "   Abajo: " + sDown, x, y + 12);
-            font.draw(batch, "Izquierda: " + sLeft + "   Derecha: " + sRight + "   Reiniciar: " + sReset, x, y);
+            font.draw(batch, Lang.hudControls() + ":", x, y + 24);
+            font.draw(batch, Lang.cfgUp() + ": " + sUp + "   " + Lang.cfgDown() + ": " + sDown, x, y + 12);
+            font.draw(batch, Lang.cfgLeft() + ": " + sLeft + "   " + Lang.cfgRight() + ": " + sRight
+                    + "   " + Lang.cfgRestart() + ": " + sReset, x, y);
         }
     }
 
@@ -140,5 +155,22 @@ public final class GameScreen extends BasePlayScreen {
         boxTexturePlaced.dispose();
         targetTexture.dispose();
         boxPlacedSound.dispose();
+    }
+
+    private String keyLabel(int keycode) {
+        switch (keycode) {
+            case Input.Keys.UP:
+                return "Flecha arriba";
+            case Input.Keys.DOWN:
+                return "Flecha abajo";
+            case Input.Keys.LEFT:
+                return "Flecha izquierda";
+            case Input.Keys.RIGHT:
+                return "Flecha derecha";
+            default: {
+                String s = Input.Keys.toString(keycode);
+                return (s != null && !s.isEmpty()) ? s : ("[" + keycode + "]");
+            }
+        }
     }
 }

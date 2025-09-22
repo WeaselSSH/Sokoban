@@ -198,4 +198,24 @@ public final class Lang {
     public static String langEnglish() {
         return "Ingles";
     }
+
+    public static String hudLevel() {
+        return (current == 2) ? "Level" : "Nivel";
+    }
+
+    public static String hudSteps() {
+        return (current == 2) ? "Steps" : "Pasos";
+    }
+
+    public static String hudPushes() {
+        return (current == 2) ? "Pushes" : "Empujes";
+    }
+
+    public static String hudTime() {
+        return (current == 2) ? "Time" : "Tiempo";
+    }
+
+    public static String hudControls() {
+        return (current == 2) ? "Controls" : "Controles";
+    }
 }
