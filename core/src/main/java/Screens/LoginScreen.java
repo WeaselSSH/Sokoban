@@ -27,6 +27,7 @@ import com.elkinedwin.LogicaUsuario.ArchivoGuardar;
 import com.elkinedwin.LogicaUsuario.LeerArchivo;
 import com.elkinedwin.LogicaUsuario.ManejoArchivos;
 import com.elkinedwin.LogicaUsuario.ManejoUsuarios;
+import com.elkinedwin.LogicaUsuario.Usuario;
 
 public class LoginScreen extends BaseScreen {
 
@@ -39,9 +40,7 @@ public class LoginScreen extends BaseScreen {
     private Texture background;
     private SpriteBatch batch;
 
-    public LoginScreen(Game game) {
-        this.game = game;
-    }
+    public LoginScreen(Game game) { this.game = game; }
 
     @Override
     protected void onShow() {
@@ -59,24 +58,9 @@ public class LoginScreen extends BaseScreen {
         btnCrear = new TextButton(Lang.createPlayerButton(), skin);
         btnSalir = new TextButton(Lang.exitButton(), skin);
 
-        btnLogin.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent e, float x, float y) {
-                loginDialog();
-            }
-        });
-        btnCrear.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent e, float x, float y) {
-                createPlayerDialog();
-            }
-        });
-        btnSalir.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent e, float x, float y) {
-                app.exit();
-            }
-        });
+        btnLogin.addListener(new ClickListener() { @Override public void clicked(InputEvent e, float x, float y) { loginDialog(); }});
+        btnCrear.addListener(new ClickListener() { @Override public void clicked(InputEvent e, float x, float y) { createPlayerDialog(); }});
+        btnSalir.addListener(new ClickListener() { @Override public void clicked(InputEvent e, float x, float y) { app.exit(); }});
 
         Table root = new Table();
         root.setFillParent(true);
@@ -107,16 +91,18 @@ public class LoginScreen extends BaseScreen {
     @Override
     public void dispose() {
         super.dispose();
-        if (skin != null) {
-            skin.dispose();
-        }
-        if (background != null) {
-            background.dispose();
-        }
-        if (batch != null) {
-            batch.dispose();
-        }
+        if (skin != null) skin.dispose();
+        if (background != null) background.dispose();
+        if (batch != null) batch.dispose();
     }
+
+    // ======= filtros/validaciones simples (lógica común) =======
+    private TextField.TextFieldFilter noCommaFilter() {
+        return (tf, c) -> c != ',';  // permite todo menos coma
+    }
+    private boolean hasComma(String s){ return s != null && s.indexOf(',') >= 0; }
+    private boolean notEmpty(String s){ return s != null && !s.trim().isEmpty(); }
+    // ===========================================================
 
     private void loginDialog() {
         final Dialog dialog = new Dialog(Lang.dlgLoginTitle(), skin);
@@ -126,18 +112,16 @@ public class LoginScreen extends BaseScreen {
 
         final TextField user = new TextField("", skin, skin.has("tfSmall", TextField.TextFieldStyle.class) ? "tfSmall" : "default");
         user.setMessageText(Lang.fieldUser());
-        user.setTextFieldFilter(onlyAlnumFilter());
+        user.setTextFieldFilter(noCommaFilter()); // permite símbolos/números, excepto coma
 
         final TextField password = new TextField("", skin, skin.has("tfSmall", TextField.TextFieldStyle.class) ? "tfSmall" : "default");
         password.setMessageText(Lang.fieldPassword());
         password.setPasswordMode(true);
         password.setPasswordCharacter('*');
-        password.setTextFieldFilter(onlyAlnumFilter());
+        password.setTextFieldFilter(noCommaFilter()); // permite símbolos/números, excepto coma
 
         final Label error = new Label("", skin, skin.has("error", Label.LabelStyle.class) ? "error" : "default");
-        if (!skin.has("error", Label.LabelStyle.class)) {
-            error.setColor(Color.SALMON);
-        }
+        if (!skin.has("error", Label.LabelStyle.class)) error.setColor(Color.SALMON);
 
         content.add(new Label(Lang.fieldUser(), skin)).left().row();
         content.add(user).width(340f).row();
@@ -148,34 +132,23 @@ public class LoginScreen extends BaseScreen {
         TextButton cancelBtn = new TextButton(Lang.dlgCancel(), skin);
         TextButton okBtn = new TextButton(Lang.dlgEnter(), skin);
 
-        cancelBtn.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                dialog.hide();
-            }
-        });
+        cancelBtn.addListener(new ClickListener() { @Override public void clicked(InputEvent event, float x, float y) { dialog.hide(); }});
         okBtn.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
+            @Override public void clicked(InputEvent event, float x, float y) {
                 String u = user.getText().trim();
                 String p = password.getText().trim();
 
-                if (!isAlnum(u) || !isAlnum(p)) {
-                    error.setText(Lang.errOnlyAlnum());
-                    return;
-                }
+                if (!notEmpty(u) || !notEmpty(p)) { error.setText(Lang.errFail()); return; }
+                if (hasComma(u) || hasComma(p)) { error.setText("No se permite la coma (,)"); return; }
 
                 try {
                     String path = ManejoArchivos.buscarUsuario(u);
-                    if (path == null) {
-                        error.setText(Lang.errUserNotFound());
-                        return;
-                    }
+                    if (path == null) { error.setText(Lang.errUserNotFound()); return; }
 
                     ManejoArchivos.setArchivo(u);
 
                     long ahora = System.currentTimeMillis();
-                    ManejoUsuarios.UsuarioActivo = new com.elkinedwin.LogicaUsuario.Usuario(u, "", "", ahora);
+                    ManejoUsuarios.UsuarioActivo = new Usuario(u, "", "", ahora);
 
                     LeerArchivo.cargarUsuario();
                     ManejoUsuarios.UsuarioActivo.recalcularTiempoPromedio();
@@ -197,7 +170,6 @@ public class LoginScreen extends BaseScreen {
                     ManejoUsuarios.UsuarioActivo.sesionActual = ahora;
 
                     ArchivoGuardar.guardarFechas();
-
                     Lang.init(ManejoUsuarios.UsuarioActivo.getIdioma());
 
                     dialog.hide();
@@ -227,22 +199,20 @@ public class LoginScreen extends BaseScreen {
 
         final TextField user = new TextField("", skin, skin.has("tfSmall", TextField.TextFieldStyle.class) ? "tfSmall" : "default");
         user.setMessageText(Lang.fieldUser());
-        user.setTextFieldFilter(onlyAlnumFilter());
+        user.setTextFieldFilter(noCommaFilter()); // símbolos y números ok, excepto coma
 
         final TextField name = new TextField("", skin, skin.has("tfSmall", TextField.TextFieldStyle.class) ? "tfSmall" : "default");
         name.setMessageText(Lang.fieldName());
-        name.setTextFieldFilter(onlyAlnumFilter());
+        // sin filtro -> permite espacios
 
         final TextField password = new TextField("", skin, skin.has("tfSmall", TextField.TextFieldStyle.class) ? "tfSmall" : "default");
         password.setMessageText(Lang.fieldPassword());
         password.setPasswordMode(true);
         password.setPasswordCharacter('*');
-        password.setTextFieldFilter(onlyAlnumFilter());
+        password.setTextFieldFilter(noCommaFilter()); // símbolos y números ok, excepto coma
 
         final Label error = new Label("", skin, skin.has("error", Label.LabelStyle.class) ? "error" : "default");
-        if (!skin.has("error", Label.LabelStyle.class)) {
-            error.setColor(Color.SALMON);
-        }
+        if (!skin.has("error", Label.LabelStyle.class)) error.setColor(Color.SALMON);
 
         content.add(new Label(Lang.fieldUser(), skin)).left().row();
         content.add(user).width(340f).row();
@@ -255,21 +225,20 @@ public class LoginScreen extends BaseScreen {
         TextButton cancelBtn = new TextButton(Lang.dlgCancel(), skin);
         TextButton createBtn = new TextButton(Lang.dlgCreate(), skin);
 
-        cancelBtn.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                dialog.hide();
-            }
-        });
+        cancelBtn.addListener(new ClickListener() { @Override public void clicked(InputEvent event, float x, float y) { dialog.hide(); }});
         createBtn.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
+            @Override public void clicked(InputEvent event, float x, float y) {
                 String u = user.getText().trim();
-                String n = name.getText().trim();
-                String p = password.getText().trim();
+                String n = name.getText(); // nombre puede tener espacios
+                String p = password.getText();
 
-                if (!isAlnum(u) || !isAlnum(n) || !isAlnum(p)) {
-                    error.setText(Lang.errOnlyAlnum());
+                if (!notEmpty(u) || !notEmpty(n) || !notEmpty(p)) { error.setText(Lang.errFail()); return; }
+                if (hasComma(u) || hasComma(p)) { error.setText("No se permite la coma (,)"); return; }
+
+                // Validación de fuerza “vaga”
+                Usuario aux = new Usuario(u, n, p, System.currentTimeMillis());
+                if (!aux.passValida(p)) {
+                    error.setText("No cumple los requisitos");
                     return;
                 }
 
@@ -303,6 +272,8 @@ public class LoginScreen extends BaseScreen {
         dialog.show(stage);
         stage.setKeyboardFocus(user);
     }
+
+    // ================= SKINS =================
 
     private static Skin buildSkin(String ttfPath) {
         Skin skin = new Skin();
@@ -423,13 +394,5 @@ public class LoginScreen extends BaseScreen {
         skin.add("error", lse);
 
         return skin;
-    }
-
-    private TextField.TextFieldFilter onlyAlnumFilter() {
-        return (textField, c) -> Character.isLetterOrDigit(c);
-    }
-
-    private boolean isAlnum(String s) {
-        return s != null && s.matches("[A-Za-z0-9]+");
     }
 }

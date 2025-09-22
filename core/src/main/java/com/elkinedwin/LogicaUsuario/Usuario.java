@@ -17,13 +17,8 @@ public class Usuario {
     public Long sesionActual;
     public Long sesionAnterior;
 
-    public int getIdioma() {
-        return getConfiguracion("Idioma");
-    }
-
-    public void setIdioma(int v) {
-        setConfiguracion("Idioma", v);
-    }
+    public int getIdioma() { return getConfiguracion("Idioma"); }
+    public void setIdioma(int v) { setConfiguracion("Idioma", v); }
 
     private ArrayList<Integer> mayorPuntuacion = new ArrayList<>();
     private ArrayList<Boolean> nivelesCompletados = new ArrayList<>();
@@ -79,6 +74,30 @@ public class Usuario {
         for (int i = 0; i < tiempoPromedio.length; i++) tiempoPromedio[i] = 0;
     }
 
+   
+    public boolean passValida(String password) {
+        if (password == null) return false;
+
+        boolean bLen = password.length() > 8;
+        boolean bUpper = false;
+        boolean bLower = false;
+        boolean bDigit = false;
+        boolean bSymbol = false;
+
+        for (int i = 0; i < password.length(); i++) {
+            char c = password.charAt(i);
+            if (Character.isUpperCase(c)) bUpper = true;
+            else if (Character.isLowerCase(c)) bLower = true;
+            else if (Character.isDigit(c)) bDigit = true;
+            else {
+                
+                if (c != ',') bSymbol = true;
+            }
+        }
+        return bLen && bUpper && bLower && bDigit && bSymbol;
+    }
+    // ============================================
+
     public void recalcularTiempoPromedio() {
         for (int i = 0; i < 7; i++) {
             int partidas = partidasPorNivel.get(i);
@@ -97,13 +116,8 @@ public class Usuario {
         tiempoPromedio[idx] = (partidas > 0) ? (tiempo / partidas) : 0;
     }
 
-    public int getTiempoPromedioNivel(int nivel) {
-        return tiempoPromedio[nivel - 1];
-    }
-
-    public int[] getTiemposPromedio() {
-        return tiempoPromedio;
-    }
+    public int getTiempoPromedioNivel(int nivel) { return tiempoPromedio[nivel - 1]; }
+    public int[] getTiemposPromedio() { return tiempoPromedio; }
 
     public void acumularPartida(int nivel, int tiempoSegundos) {
         int idx = nivel - 1;
@@ -114,13 +128,8 @@ public class Usuario {
         recalcularTiempoPromedioNivel(nivel);
     }
 
-    public int getMejorTiempoPorNivel(int nivel) {
-        return tiempoMejorIntentoPorNivel.get(nivel - 1);
-    }
-
-    public void setMejorTiempoPorNivel(int nivel, int v) {
-        setTiempoMejorIntento(nivel, v);
-    }
+    public int getMejorTiempoPorNivel(int nivel) { return tiempoMejorIntentoPorNivel.get(nivel - 1); }
+    public void setMejorTiempoPorNivel(int nivel, int v) { setTiempoMejorIntento(nivel, v); }
 
     public int getEmpujesNivel(int nivel) { return empujesPorMejorIntento.get(nivel - 1); }
     public void setEmpujesNivel(int nivel, int v) { empujesPorMejorIntento.set(nivel - 1, v); }

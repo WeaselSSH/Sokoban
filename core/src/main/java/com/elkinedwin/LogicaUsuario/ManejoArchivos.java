@@ -50,10 +50,25 @@ public class ManejoArchivos {
         archivoConfig   = new RandomAccessFile(new File(carpetaUsuarioActual, "Config.bin"), "rw");
     }
 
+    private static boolean contieneComa(String s){
+        return s != null && s.indexOf(',') >= 0;
+    }
+
     public static void crearUsuario(String nombre, String usuario, String contrasena) throws IOException {
         iniciarCpadre();
         if (usuario == null || usuario.trim().isEmpty())
             throw new IOException("Usuario invalido");
+
+        
+        if (contieneComa(usuario)) throw new IOException("El usuario no puede contener coma (,).");
+        if (contrasena == null || contrasena.trim().isEmpty()) throw new IOException("Contrasena vacia.");
+        if (contieneComa(contrasena)) throw new IOException("La contraseña no puede contener coma (,).");
+
+        
+        Usuario tmp = new Usuario(usuario, nombre, contrasena, System.currentTimeMillis());
+        if (!tmp.passValida(contrasena)) {
+            throw new IOException("La contraseña no cumple los requisitos.");
+        }
 
         File dir = new File(carpetaUsuarios, usuario);
         if (dir.exists())
