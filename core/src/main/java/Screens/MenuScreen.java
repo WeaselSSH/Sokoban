@@ -17,6 +17,7 @@ import com.elkinedwin.LogicaUsuario.ArchivoGuardar;
 import com.elkinedwin.LogicaUsuario.AudioBus;
 import com.elkinedwin.LogicaUsuario.ManejoUsuarios;
 import com.elkinedwin.LogicaUsuario.Usuario;
+import GameLogic.Lang;
 
 import java.io.IOException;
 
@@ -24,16 +25,15 @@ public class MenuScreen extends BaseScreen {
 
     private final Game game;
 
-    private Label lblTitle;
-    private TextButton btnPlay, btnLevels, btnConfig, btnUniverso, btnExit;
-    private TextButton btnHistorial;
+    private Label titleLabel;
+    private TextButton playButton, tutorialButton, settingsButton, historyButton, universeButton, logoutButton;
 
     private BitmapFont titleFont, buttonFont;
-    private FreeTypeFontGenerator generator;
+    private FreeTypeFontGenerator fontGenerator;
 
     private Label userLabel;
-    private Texture avatarTex;
-    private Image avatarImg;
+    private Texture avatarTexture;
+    private Image avatarImage;
 
     public MenuScreen(Game game) {
         this.game = game;
@@ -41,72 +41,72 @@ public class MenuScreen extends BaseScreen {
 
     @Override
     protected void onShow() {
-        generator = new FreeTypeFontGenerator(files.internal("fonts/pokemon_fire_red.ttf"));
+        fontGenerator = new FreeTypeFontGenerator(files.internal("fonts/pokemon_fire_red.ttf"));
 
-        FreeTypeFontGenerator.FreeTypeFontParameter pt = new FreeTypeFontGenerator.FreeTypeFontParameter();
-        pt.size = 136;
-        pt.color = Color.valueOf("E6DFC9");
-        titleFont = generator.generateFont(pt);
+        FreeTypeFontGenerator.FreeTypeFontParameter titleParam = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        titleParam.size = 136;
+        titleParam.color = Color.valueOf("E6DFC9");
+        titleFont = fontGenerator.generateFont(titleParam);
 
-        FreeTypeFontGenerator.FreeTypeFontParameter pb = new FreeTypeFontGenerator.FreeTypeFontParameter();
-        pb.size = 72;
-        pb.color = Color.valueOf("E6DFC9");
-        buttonFont = generator.generateFont(pb);
+        FreeTypeFontGenerator.FreeTypeFontParameter buttonParam = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        buttonParam.size = 72;
+        buttonParam.color = Color.valueOf("E6DFC9");
+        buttonFont = fontGenerator.generateFont(buttonParam);
 
         Label.LabelStyle titleStyle = new Label.LabelStyle(titleFont, titleFont.getColor());
-        TextButton.TextButtonStyle btnStyle = new TextButton.TextButtonStyle();
-        btnStyle.font = buttonFont;
-        btnStyle.fontColor = buttonFont.getColor();
+        TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle();
+        buttonStyle.font = buttonFont;
+        buttonStyle.fontColor = buttonFont.getColor();
 
-        lblTitle = new Label("SOKOBAN", titleStyle);
-        btnPlay = new TextButton("Jugar", btnStyle);
-        btnLevels = new TextButton("Tutorial", btnStyle);
-        btnConfig = new TextButton("Configuraciones", btnStyle);
-        btnHistorial = new TextButton("Historial de Partidas", btnStyle);
-        btnUniverso = new TextButton("Universo Sokoban", btnStyle);
-        btnExit = new TextButton("Cerrar Sesion", btnStyle);
+        titleLabel = new Label(Lang.gameTitle(), titleStyle);
+        playButton = new TextButton(Lang.play(), buttonStyle);
+        tutorialButton = new TextButton(Lang.tutorial(), buttonStyle);
+        settingsButton = new TextButton(Lang.settings(), buttonStyle);
+        historyButton = new TextButton(Lang.history(), buttonStyle);
+        universeButton = new TextButton(Lang.universe(), buttonStyle);
+        logoutButton = new TextButton(Lang.logout(), buttonStyle);
 
-        btnPlay.addListener(new ClickListener() {
+        playButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent e, float x, float y) {
-                boolean tutoHecho = false;
+                boolean tutorialDone = false;
                 try {
                     if (ManejoUsuarios.UsuarioActivo != null) {
-                        tutoHecho = ManejoUsuarios.UsuarioActivo.getTutocomplete();
+                        tutorialDone = ManejoUsuarios.UsuarioActivo.getTutocomplete();
                     }
                 } catch (Exception ignored) {
                 }
-                if (!tutoHecho) {
+                if (!tutorialDone) {
                     game.setScreen(new TutorialScreen(game));
                 } else {
                     game.setScreen(new StageScreen(game));
                 }
             }
         });
-        btnLevels.addListener(new ClickListener() {
+        tutorialButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent e, float x, float y) {
                 game.setScreen(new TutorialScreen(game));
             }
         });
-        btnConfig.addListener(new ClickListener() {
+        settingsButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent e, float x, float y) {
                 game.setScreen(new ConfigScreen(game));
             }
         });
-        btnHistorial.addListener(new ClickListener() {
+        historyButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent e, float x, float y) {
                 game.setScreen(new HistorialScreen(game));
             }
         });
-        btnUniverso.addListener(new ClickListener() {
+        universeButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent e, float x, float y) {
             }
         });
-        btnExit.addListener(new ClickListener() {
+        logoutButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent e, float x, float y) {
                 try {
@@ -122,43 +122,44 @@ public class MenuScreen extends BaseScreen {
         Table root = new Table();
         root.setFillParent(true);
         stage.addActor(root);
-        root.top().padTop(40f);
-        root.add(lblTitle).center().padBottom(60f).row();
-        root.defaults().padTop(18f).padBottom(18f).center();
-        root.add(btnPlay).row();
-        root.add(btnLevels).row();
-        root.add(btnConfig).row();
-        root.add(btnHistorial).row();
-        root.add(btnUniverso).row();
-        root.add(btnExit).padTop(36f).row();
 
-        int volCfg = 70;
+        root.top().padTop(40f);
+        root.add(titleLabel).center().padBottom(60f).row();
+        root.defaults().padTop(18f).padBottom(18f).center();
+        root.add(playButton).row();
+        root.add(tutorialButton).row();
+        root.add(settingsButton).row();
+        root.add(historyButton).row();
+        root.add(universeButton).row();
+        root.add(logoutButton).padTop(36f).row();
+
+        int volumeConfig = 70;
         try {
             if (ManejoUsuarios.UsuarioActivo != null && ManejoUsuarios.UsuarioActivo.configuracion != null) {
                 Integer v = ManejoUsuarios.UsuarioActivo.configuracion.get("Volumen");
                 if (v != null) {
-                    volCfg = v;
+                    volumeConfig = v;
                 }
             }
         } catch (Exception ignored) {
         }
-        AudioBus.setMasterVolume(volCfg / 100f);
+        AudioBus.setMasterVolume(volumeConfig / 100f);
 
-        Usuario u = ManejoUsuarios.UsuarioActivo;
-        String username = (u != null && u.getUsuario() != null) ? u.getUsuario() : "Invitado";
+        Usuario user = ManejoUsuarios.UsuarioActivo;
+        String username = (user != null && user.getUsuario() != null) ? user.getUsuario() : Lang.guest();
 
         String avatarPath = "ui/default_avatar.png";
-        if (u != null && u.avatar != null && !u.avatar.trim().isEmpty() && files.internal(u.avatar).exists()) {
-            avatarPath = u.avatar;
+        if (user != null && user.avatar != null && !user.avatar.trim().isEmpty() && files.internal(user.avatar).exists()) {
+            avatarPath = user.avatar;
         }
 
         Label.LabelStyle userStyle = new Label.LabelStyle(buttonFont, Color.WHITE);
         userLabel = new Label(username, userStyle);
         userLabel.setFontScale(1.1f);
 
-        avatarTex = new Texture(avatarPath);
-        avatarImg = new Image(avatarTex);
-        avatarImg.addListener(new ClickListener() {
+        avatarTexture = new Texture(avatarPath);
+        avatarImage = new Image(avatarTexture);
+        avatarImage.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent e, float x, float y) {
                 game.setScreen(new MiPerfilScreen(game));
@@ -169,15 +170,15 @@ public class MenuScreen extends BaseScreen {
         topRight.setFillParent(true);
         topRight.top().right().padTop(14f).padRight(16f);
         topRight.add(userLabel).padRight(10f).center();
-        topRight.add(avatarImg).size(112f, 112f).center();
+        topRight.add(avatarImage).size(112f, 112f).center();
         stage.addActor(topRight);
     }
 
     @Override
     public void hide() {
-        if (avatarTex != null) {
-            avatarTex.dispose();
-            avatarTex = null;
+        if (avatarTexture != null) {
+            avatarTexture.dispose();
+            avatarTexture = null;
         }
         super.hide();
     }
@@ -185,7 +186,7 @@ public class MenuScreen extends BaseScreen {
     @Override
     public void dispose() {
         super.dispose();
-        generator.dispose();
+        fontGenerator.dispose();
         titleFont.dispose();
         buttonFont.dispose();
     }
