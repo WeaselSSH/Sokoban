@@ -17,7 +17,7 @@ public final class MovementThread implements Runnable {
 
     public void stop() {
         running = false;
-        Thread.currentThread().interrupt();
+        directionectionQueue.offer(Directions.QUIT);
     }
 
     @Override
