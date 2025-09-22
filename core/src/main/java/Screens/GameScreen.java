@@ -35,12 +35,14 @@ public final class GameScreen extends BasePlayScreen {
 
         boxPlacedSound = AudioX.newSound("audios/box_placed.wav");
 
+        // Lee los controles desde UsuarioActivo.configuracion (claves como en Usuario)
         kUp = getCfgKey("MoverArriba", Input.Keys.UP);
         kDown = getCfgKey("MoverAbajo", Input.Keys.DOWN);
         kLeft = getCfgKey("MoverIzq", Input.Keys.LEFT);
         kRight = getCfgKey("MoverDer", Input.Keys.RIGHT);
         kReset = getCfgKey("Reiniciar", Input.Keys.R);
 
+        // Etiquetas legibles (localizadas ES/EN)
         sUp = keyLabel(kUp);
         sDown = keyLabel(kDown);
         sLeft = keyLabel(kLeft);
@@ -132,14 +134,18 @@ public final class GameScreen extends BasePlayScreen {
         int seconds = totalSeconds % 60;
         String timeStr = String.format("%02d:%02d", minutes, seconds);
 
+        
+        String levelLabel = (level == 0) ? Lang.tutorial() : (Lang.hudLevel() + " " + level);
+
         BitmapFont f = font;
         f.draw(batch,
-                Lang.hudLevel() + " " + level
+                levelLabel
                 + "  " + Lang.hudSteps() + ": " + moves
                 + "  " + Lang.hudPushes() + ": " + pushes
                 + "  " + Lang.hudTime() + ": " + timeStr,
                 6, GameConfig.PX_HEIGHT - 6);
 
+        
         if (level == 0) {
             float x = 6f, y = 36f;
             font.draw(batch, Lang.hudControls() + ":", x, y + 24);
@@ -157,20 +163,21 @@ public final class GameScreen extends BasePlayScreen {
         boxPlacedSound.dispose();
     }
 
+    
     private String keyLabel(int keycode) {
-        switch (keycode) {
-            case Input.Keys.UP:
-                return "Flecha arriba";
-            case Input.Keys.DOWN:
-                return "Flecha abajo";
-            case Input.Keys.LEFT:
-                return "Flecha izquierda";
-            case Input.Keys.RIGHT:
-                return "Flecha derecha";
-            default: {
-                String s = Input.Keys.toString(keycode);
-                return (s != null && !s.isEmpty()) ? s : ("[" + keycode + "]");
-            }
+        if (keycode == Input.Keys.UP) {
+            return (Lang.get() == 2) ? "Arrow Up" : "Flecha arriba";
         }
+        if (keycode == Input.Keys.DOWN) {
+            return (Lang.get() == 2) ? "Arrow Down" : "Flecha abajo";
+        }
+        if (keycode == Input.Keys.LEFT) {
+            return (Lang.get() == 2) ? "Arrow Left" : "Flecha izquierda";
+        }
+        if (keycode == Input.Keys.RIGHT) {
+            return (Lang.get() == 2) ? "Arrow Right" : "Flecha derecha";
+        }
+        String s = Input.Keys.toString(keycode);
+        return (s != null && !s.isEmpty()) ? s : ("[" + keycode + "]");
     }
 }

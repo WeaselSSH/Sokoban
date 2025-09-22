@@ -5,7 +5,6 @@ import GameLogic.GameConfig;
 import GameLogic.MovementThread;
 import GameLogic.Player;
 import GameLogic.SokobanGame;
-import GameLogic.Lang;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -106,12 +105,15 @@ public abstract class BasePlayScreen implements Screen {
 
     private long runStartMillis = 0L;
     private String startDateStr = null;
-    private int restartCount = 0;
+    private int restartCount = 0;          // cuenta de intentos (inicia en 1)
     private boolean historyRecorded = false;
 
-    // Variables de victoria quedan, pero SIN usar delay
+    // Músicas y métricas de victoria
     private Music victoryMusic = null;
     private int victoryMoves, victoryPushes, victorySeconds;
+
+    // ====== Parámetros de logros (tuneables) ======
+    private static final int NO_ME_RINDO_UMBRAL = 20; // reinicios o más
 
     public BasePlayScreen(Game app, int level) {
         this.app = app;
@@ -148,6 +150,7 @@ public abstract class BasePlayScreen implements Screen {
 
         loadCommonAssets();
 
+        // ====== UI de pausa en español ======
         pauseStage = new Stage(viewport);
         Label.LabelStyle pauseStyle = new Label.LabelStyle(font, Color.WHITE);
 
@@ -179,15 +182,20 @@ public abstract class BasePlayScreen implements Screen {
         pausePanel = new Table();
         pausePanel.pad(24f);
         pausePanel.defaults().pad(8f);
-        pausePanel.add(new Label(Lang.pauseTitle(), pauseStyle)).row();
-        pausePanel.add(new Label(Lang.pauseResume(sPause), pauseStyle)).row();
+
+        // Asignamos teclas antes de mostrar el mensaje
+        kPause = getCfgKey("Pausar", Input.Keys.ESCAPE);
+        sPause = Input.Keys.toString(kPause);
+
+        pausePanel.add(new Label("Juego en pausa", pauseStyle)).row();
+        pausePanel.add(new Label("Pulsa [" + sPause + "] para reanudar", pauseStyle)).row();
 
         TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle();
         buttonStyle.font = font;
         buttonStyle.fontColor = Color.WHITE;
         buttonStyle.downFontColor = Color.GRAY;
 
-        TextButton exitButton = new TextButton(Lang.exitGame(), buttonStyle);
+        TextButton exitButton = new TextButton("Salir al menu", buttonStyle);
         exitButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -201,10 +209,11 @@ public abstract class BasePlayScreen implements Screen {
         pauseStage.addActor(pauseRoot);
         pauseRoot.setVisible(false);
 
+        // ====== Inicio de carrera ======
         historyRecorded = false;
         runStartMillis = System.currentTimeMillis();
         startDateStr = formatDate(runStartMillis);
-        restartCount = 1;
+        restartCount = 1; // primer intento
         timeChronometer = 0f;
 
         onShowExtra();
@@ -246,9 +255,10 @@ public abstract class BasePlayScreen implements Screen {
     @Override
     public void hide() {
         submitLevelSessionTime();
+        
         if (isGameplayLevel() && !historyRecorded) {
             int elapsedSec = (int) timeChronometer;
-            String logros = Lang.historyTryAgain();
+            String logros = "Sin logro obtenido,esfuerzate mas :(  ";
             savePartida(startDateStr, restartCount, logros, elapsedSec, level);
             historyRecorded = true;
         }
@@ -272,12 +282,15 @@ public abstract class BasePlayScreen implements Screen {
         disposeCommonAssets();
     }
 
+    // ================== Métodos abstractos para las subclases ==================
     protected abstract void onShowExtra();
     protected abstract void onDrawMap();
     protected abstract void onDrawHUD();
     protected abstract void onDisposeExtra();
 
+    // ================== Lógica principal ==================
     protected void onUpdate(float delta) {
+        // Toggle pausa
         if (Gdx.input.isKeyJustPressed(kPause)) {
             paused = !paused;
             if (paused) {
@@ -293,8 +306,6 @@ public abstract class BasePlayScreen implements Screen {
         }
 
         if (paused) return;
-
-        // Quitado el manejo de FREEZE/PLAYING: sin delay
 
         timeChronometer += delta;
         if (isGameplayLevel()) levelSessionTime += delta;
@@ -368,7 +379,6 @@ public abstract class BasePlayScreen implements Screen {
             }
 
             AudioX.play(stepSound, 1.0f);
-
             startTween(startPX, startPY, endPX, endPY);
 
             game.recomputeVictory();
@@ -403,8 +413,21 @@ public abstract class BasePlayScreen implements Screen {
 
                 if (isGameplayLevel() && !historyRecorded) {
                     int elapsedSecReal = (int) timeChronometer;
-                    StringBuilder lg = new StringBuilder(Lang.logCompletedLevel());
-                    if (newBestAttempt) lg.append("\n¡Nuevo mejor intento!");
+
+                   
+                    StringBuilder lg = new StringBuilder();
+                    lg.append("Nivel completado");
+
+                    if (newBestAttempt) {
+                        lg.append("\nNuevo record personal!");
+                    }
+                    if (restartCount == 1) {
+                        lg.append("\nCompletado sin reinicios!");
+                    }
+                    if (restartCount >= NO_ME_RINDO_UMBRAL) {
+                        lg.append("\nNo me rindo!");
+                    }
+
                     savePartida(startDateStr, restartCount, lg.toString(), elapsedSecReal, level);
                     historyRecorded = true;
                 }
@@ -416,7 +439,7 @@ public abstract class BasePlayScreen implements Screen {
                 moveRequested = false;
                 tweenActive = false;
 
-                // Cambio inmediato de pantalla SIN delay
+               
                 app.setScreen(new VictoryScreen(app, level, victoryMoves, victoryPushes, victorySeconds, 7, font));
                 return;
             }
@@ -453,6 +476,7 @@ public abstract class BasePlayScreen implements Screen {
         levelSessionTimeSubmitted = true;
     }
 
+    // ================== Carga/descarga de assets ==================
     protected void loadCommonAssets() {
         fontGenerator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/pokemon_fire_red.ttf"));
         fontParameter = new FreeTypeFontParameter();
@@ -479,6 +503,7 @@ public abstract class BasePlayScreen implements Screen {
         Texture rightIdle = load("textures/player_right_idle.png");
         Texture rightWalk2= load("textures/player_right_walk2.png");
 
+       
         kUp = getCfgKey("Arriba", Input.Keys.UP);
         kDown = getCfgKey("Abajo", Input.Keys.DOWN);
         kLeft = getCfgKey("Izquierda", Input.Keys.LEFT);
@@ -532,6 +557,7 @@ public abstract class BasePlayScreen implements Screen {
         font.dispose();
     }
 
+    // ================== Utilidades ==================
     protected int getCfgKey(String name, int def) {
         try {
             Usuario usuario = ManejoUsuarios.UsuarioActivo;
@@ -544,6 +570,7 @@ public abstract class BasePlayScreen implements Screen {
     }
 
     protected Directions readHeldDirection() {
+       
         kUp = getCfgKey("MoverArriba", Input.Keys.UP);
         kDown = getCfgKey("MoverAbajo", Input.Keys.DOWN);
         kLeft = getCfgKey("MoverIzq", Input.Keys.LEFT);
@@ -611,7 +638,7 @@ public abstract class BasePlayScreen implements Screen {
 
     private String formatDate(long millis) {
         try {
-            return new SimpleDateFormat("yyyy/MM/dd HH-mm-ss").format(new Date(millis));
+            return new SimpleDateFormat("yyyy/MM/dd  HH-mm-ss").format(new Date(millis));
         } catch (Exception e) {
             return String.valueOf(millis);
         }
