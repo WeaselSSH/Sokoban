@@ -5,6 +5,14 @@ public final class Lang {
 
     private static int current = 1;
 
+    public static String errUserExists() {
+       return (current==2) ? "User already in use":"Usuario ya en uso";
+    }
+
+    public static String errPasswordMismatch() {
+       return (current==2)? "Password does not match":"La contrasena no coincide";
+    }
+
     private Lang() {
     }
 

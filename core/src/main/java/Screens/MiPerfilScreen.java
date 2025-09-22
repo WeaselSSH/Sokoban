@@ -1,5 +1,6 @@
 package Screens;
 
+import GameLogic.Lang;
 import static com.badlogic.gdx.Gdx.files;
 
 import com.badlogic.gdx.Game;
@@ -19,6 +20,8 @@ import com.badlogic.gdx.utils.Scaling;
 
 import com.elkinedwin.LogicaUsuario.ManejoUsuarios;
 import com.elkinedwin.LogicaUsuario.Usuario;
+import com.elkinedwin.LogicaUsuario.ManejoArchivos; // <-- import para validar existencia
+           // <-- para usar Lang.errUserExists()
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -338,9 +341,21 @@ public class MiPerfilScreen extends BaseScreen {
         cancel.addListener(new ClickListener(){ @Override public void clicked(InputEvent e,float x,float y){ dlg.hide(); }});
         ok.addListener(new ClickListener(){
             @Override public void clicked(InputEvent e,float x,float y){
-                String v = tf.getText().trim();
-                if (!isAlnum(v)) { err.setText("Usuario invalido."); return; }
                 Usuario u = ManejoUsuarios.UsuarioActivo;
+                String actual = (u != null) ? u.getUsuario() : "";
+                String v = tf.getText().trim();
+
+                // Validaciones
+                if (!isAlnum(v)) { err.setText(Lang.errOnlyAlnum()); return; }
+                if (v.equalsIgnoreCase(actual)) { err.setText(Lang.errUserExists()); return; } // tratar mismo nombre como conflicto
+                String existente = ManejoArchivos.buscarUsuario(v);
+                if (existente != null) {
+                    // YA existe carpeta/usuario con ese nombre
+                    err.setText(Lang.errUserExists());
+                    return;
+                }
+
+                // Si pasa validaciones, actualiza el modelo y la UI (no renombra carpetas/archivos aquí)
                 if (u != null) { u.setUsuario(v); lblUsuarioVal.setText(v); }
                 dlg.hide();
             }
@@ -379,8 +394,8 @@ public class MiPerfilScreen extends BaseScreen {
             @Override public void clicked(InputEvent e,float x,float y){
                 String p1 = tf1.getText().trim();
                 String p2 = tf2.getText().trim();
-                if (!isAlnum(p1) || !isAlnum(p2)) { err.setText("Solo letras o numeros."); return; }
-                if (!p1.equals(p2)) { err.setText("No coincide."); return; }
+                if (!isAlnum(p1) || !isAlnum(p2)) { err.setText(Lang.errOnlyAlnum()); return; }
+                if (!p1.equals(p2)) { err.setText(Lang.errPasswordMismatch()); return; } // usa tu clave de Lang para "No coincide."
                 Usuario u = ManejoUsuarios.UsuarioActivo;
                 if (u != null) { u.setContrasena(p1); lblPassVal.setText(mask(p1)); }
                 dlg.hide();
@@ -459,7 +474,7 @@ public class MiPerfilScreen extends BaseScreen {
     private String formatMillis(Long m){
         if (m == null || m <= 0) return "-";
         return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(m));
-        }
+    }
 
     private String formatSecondsHuman(int sec){
         if (sec <= 0) return "0 s";

@@ -1,7 +1,9 @@
 package com.elkinedwin.LogicaUsuario;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.ArrayList;
 
 public class LeerArchivo {
 
@@ -11,6 +13,7 @@ public class LeerArchivo {
         leerProgreso();
         leerConfig();
         leerPartidas();
+        cargarRivales();
     }
 
     private static void leerDatos() throws IOException {
@@ -143,5 +146,142 @@ public class LeerArchivo {
 
     private static String safeReadUTF(RandomAccessFile f) {
         try { return f.readUTF(); } catch (Exception e) { return ""; }
+    }
+
+    private static void cargarRivales() {
+        try {
+            if (ManejoArchivos.carpetaUsuarios == null) return;
+            File base = ManejoArchivos.carpetaUsuarios;
+            if (!base.exists() || !base.isDirectory()) return;
+
+            Usuario activo = ManejoUsuarios.UsuarioActivo;
+            ArrayList<Usuario> lista = new ArrayList<>();
+
+            File[] sub = base.listFiles(File::isDirectory);
+            if (sub == null) sub = new File[0];
+
+            for (File dir : sub) {
+                try {
+                    String userFolderName = dir.getName();
+                    Usuario rival = leerUsuarioDesdeCarpetaSoloLectura(dir, userFolderName);
+                    if (rival != null) lista.add(rival);
+                } catch (Exception ignored) {}
+            }
+
+            boolean reemplazado = false;
+            for (int i = 0; i < lista.size(); i++) {
+                Usuario u = lista.get(i);
+                if (u != null && activo != null &&
+                    u.getUsuario() != null && u.getUsuario().equalsIgnoreCase(activo.getUsuario())) {
+                    lista.set(i, activo);
+                    reemplazado = true;
+                    break;
+                }
+            }
+            if (!reemplazado && activo != null) {
+                lista.add(activo);
+            }
+
+            if (activo != null) activo.setRivales(lista);
+        } catch (Exception ignored) {}
+    }
+
+    private static Usuario leerUsuarioDesdeCarpetaSoloLectura(File carpetaUsuario, String userFolderName) {
+        RandomAccessFile fDatos = null, fProg = null, fCfg = null;
+        try {
+            File datos     = new File(carpetaUsuario, "Datos.bin");
+            File progreso  = new File(carpetaUsuario, "Progreso.bin");
+            File config    = new File(carpetaUsuario, "Config.bin");
+
+            if (!datos.exists() || !progreso.exists()) return null;
+
+            fDatos = new RandomAccessFile(datos, "r");
+            fProg  = new RandomAccessFile(progreso, "r");
+            if (config.exists())   fCfg  = new RandomAccessFile(config, "r");
+
+            Usuario rival = new Usuario(userFolderName, userFolderName, "", 0L);
+
+            fDatos.seek(0);
+            long fechaRegistro = fDatos.readLong();
+            long ultimaSesion  = fDatos.readLong();
+
+            fDatos.seek(16);
+            String nombre = safeReadUTF(fDatos);
+
+            String packed = safeReadUTF(fDatos);
+            String usuario = "";
+            String pass = "";
+            String img = "";
+            if (packed != null) {
+                String[] parts = packed.split(",", -1);
+                if (parts.length > 0) usuario = parts[0];
+                if (parts.length > 1) pass    = parts[1];
+                if (parts.length > 2) img     = parts[2];
+            }
+
+            rival.setFechaRegistro(fechaRegistro);
+            rival.setUltimaSesion(ultimaSesion);
+            rival.setNombre(nombre == null ? "" : nombre);
+            rival.setUsuario(usuario == null ? userFolderName : usuario);
+            rival.setContrasena(pass == null ? "" : pass);
+            rival.avatar = (img == null ? "" : img);
+
+            fProg.seek(0);
+            rival.setTutocomplete(fProg.readBoolean());
+
+            fProg.seek(1);
+            for (int i = 1; i <= 7; i++) rival.setNivelCompletado(i, fProg.readBoolean());
+
+            fProg.seek(8);
+            for (int i = 1; i <= 7; i++) rival.setMayorPuntuacion(i, fProg.readInt());
+
+            fProg.seek(36);
+            rival.setTiempoJugadoTotal(fProg.readInt());
+
+            fProg.seek(40);
+            rival.setPuntuacionGeneral(fProg.readInt());
+
+            fProg.seek(44);
+            rival.setPartidasTotales(fProg.readInt());
+
+            fProg.seek(48);
+            for (int i = 1; i <= 7; i++) rival.setPartidasPorNivel(i, fProg.readInt());
+
+            fProg.seek(102);
+            for (int i = 1; i <= 7; i++) rival.setTiempoPorNivel(i, fProg.readInt());
+
+            fProg.seek(130);
+            for (int i = 1; i <= 7; i++) rival.setMejorTiempoPorNivel(i, fProg.readInt());
+
+            fProg.seek(158);
+            for (int i = 1; i <= 7; i++) rival.setEmpujesNivel(i, fProg.readInt());
+
+            if (fCfg != null) {
+                fCfg.seek(0);
+                int vol       = fCfg.readInt();
+                int arriba    = fCfg.readInt();
+                int abajo     = fCfg.readInt();
+                int der       = fCfg.readInt();
+                int izq       = fCfg.readInt();
+                int reiniciar = fCfg.readInt();
+                int idioma    = fCfg.readInt();
+
+                rival.setConfiguracion("Volumen", vol);
+                rival.setConfiguracion("MoverArriba", arriba);
+                rival.setConfiguracion("MoverAbajo", abajo);
+                rival.setConfiguracion("MoverDer", der);
+                rival.setConfiguracion("MoverIzq", izq);
+                rival.setConfiguracion("Reiniciar", reiniciar);
+                rival.setConfiguracion("Idioma", idioma);
+            }
+
+            return rival;
+        } catch (Exception ignored) {
+            return null;
+        } finally {
+            try { if (fDatos != null) fDatos.close(); } catch (Exception ignored) {}
+            try { if (fProg  != null) fProg.close(); }  catch (Exception ignored) {}
+            try { if (fCfg   != null) fCfg.close(); }   catch (Exception ignored) {}
+        }
     }
 }

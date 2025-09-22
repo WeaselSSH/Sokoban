@@ -276,9 +276,11 @@ public class LoginScreen extends BaseScreen {
                 try {
                     String existe = ManejoArchivos.buscarUsuario(u);
                     if (existe != null) {
-                        error.setText(Lang.errUserNotFound()); // Podrías tener Lang.errUserExists() si quieres diferenciar
-                        return;
-                    }
+    // El usuario YA existe: informar eso, no "no encontrado".
+    error.setText(Lang.errUserExists());
+    return;
+}
+
 
                     ManejoArchivos.crearUsuario(n, u, p);
 

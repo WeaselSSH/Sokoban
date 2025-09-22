@@ -26,7 +26,7 @@ public class MenuScreen extends BaseScreen {
     private final Game game;
 
     private Label titleLabel;
-    private TextButton playButton, tutorialButton, settingsButton, historyButton, universeButton, logoutButton;
+    private TextButton playButton, tutorialButton, settingsButton, historyButton, rankingButton, logoutButton;
 
     private BitmapFont titleFont, buttonFont;
     private FreeTypeFontGenerator fontGenerator;
@@ -68,7 +68,7 @@ public class MenuScreen extends BaseScreen {
         tutorialButton = new TextButton(Lang.tutorial(), buttonStyle);
         settingsButton = new TextButton(Lang.settings(), buttonStyle);
         historyButton = new TextButton(Lang.history(), buttonStyle);
-        universeButton = new TextButton(Lang.universe(), buttonStyle);
+        rankingButton = new TextButton("Ranking", buttonStyle);
         logoutButton = new TextButton(Lang.logout(), buttonStyle);
 
         playButton.addListener(new ClickListener() {
@@ -106,9 +106,10 @@ public class MenuScreen extends BaseScreen {
                 game.setScreen(new HistorialScreen(game));
             }
         });
-        universeButton.addListener(new ClickListener() {
+        rankingButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent e, float x, float y) {
+                game.setScreen(new RankingScreen(game));
             }
         });
         logoutButton.addListener(new ClickListener() {
@@ -135,7 +136,7 @@ public class MenuScreen extends BaseScreen {
         root.add(tutorialButton).row();
         root.add(settingsButton).row();
         root.add(historyButton).row();
-        root.add(universeButton).row();
+        root.add(rankingButton).row();
         root.add(logoutButton).padTop(36f).row();
 
         int volumeConfig = 70;

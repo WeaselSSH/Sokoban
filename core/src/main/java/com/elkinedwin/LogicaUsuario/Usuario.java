@@ -42,7 +42,7 @@ public class Usuario {
 
     private int puntuacionGeneral = 0;
 
-    private ArrayList<Usuario> amigos = new ArrayList<>();
+    private ArrayList<Usuario> Rivales = new ArrayList<>();
     private int[] tiempoPromedio = new int[7];
 
     public ArrayList<Partida> historial = new ArrayList<>();
@@ -178,4 +178,40 @@ public class Usuario {
     }
 
     public void setAvatar(String path){ this.avatar = path; }
+
+    public ArrayList<Usuario> getRivales() { return Rivales; }
+    public void setRivales(ArrayList<Usuario> lista) { this.Rivales = (lista == null) ? new ArrayList<>() : lista; }
+    public void addRival(Usuario u) { if (u != null) this.Rivales.add(u); }
+
+    public int getConteoNivelesCompletados() {
+        int c = 0;
+        for (int i = 1; i <= 7; i++) {
+            try { if (getNivelCompletado(i)) c++; } catch (Exception ignored) {}
+        }
+        return c;
+    }
+
+    public int getSumaPasosMejorIntento() {
+        int sum = 0;
+        for (int i = 1; i <= 7; i++) {
+            try { sum += Math.max(0, getMayorPuntuacion(i)); } catch (Exception ignored) {}
+        }
+        return sum;
+    }
+
+    public int getSumaEmpujesMejorIntento() {
+        int sum = 0;
+        for (int i = 1; i <= 7; i++) {
+            try { sum += Math.max(0, getEmpujesNivel(i)); } catch (Exception ignored) {}
+        }
+        return sum;
+    }
+
+    public int getSumaTiempoMejorIntento() {
+        int sum = 0;
+        for (int i = 1; i <= 7; i++) {
+            try { sum += Math.max(0, getTiempoMejorIntento(i)); } catch (Exception ignored) {}
+        }
+        return sum;
+    }
 }
